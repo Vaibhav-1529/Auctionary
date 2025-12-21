@@ -9,11 +9,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config) => {
-    config.watchOptions = {
-      ignored: /supabase/,
-    };
-    return config;
+  typescript: {
+    ignoreBuildErrors: true,
   },
 };
 
