@@ -59,10 +59,6 @@ function ItemCard({ item, i }: { item: AuctionItem; i: number }) {
         >
           ● {item.status}
         </span>
-
-        <span className="absolute top-12 left-3 bg-black/60 text-white text-xs px-3 py-1 rounded-full">
-          Lot #{item.id}
-        </span>
       </div>
 
       {/* Content */}

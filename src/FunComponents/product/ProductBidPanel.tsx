@@ -91,9 +91,6 @@ export default function ProductBidPanel({ auction, amount, setAmount }: any) {
   return (
     <div className="p-6 border rounded-2xl bg-white shadow-lg space-y-5">
       <div className="flex justify-between items-start">
-        <span className="bg-blue-50 text-blue-600 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-blue-100">
-          Lot #{auction.id}
-        </span>
         
         <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold shadow-sm border transition-all
           ${auction.status === "Live" && !isExpired && !isSold
