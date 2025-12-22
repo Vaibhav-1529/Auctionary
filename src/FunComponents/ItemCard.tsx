@@ -37,7 +37,6 @@ function ItemCard({ item, i }: { item: AuctionItem; i: number }) {
       whileHover={{ y: -10 }}
       className="min-w-84 max-w-84 bg-white rounded-2xl border shadow-sm overflow-hidden group"
     >
-      {/* Image */}
       <div className="relative overflow-hidden">
         <Image
           src={item.image_url}
@@ -60,8 +59,6 @@ function ItemCard({ item, i }: { item: AuctionItem; i: number }) {
           ● {item.status}
         </span>
       </div>
-
-      {/* Content */}
       <div className="p-4">
         <h3
           className="text-lg cursor-pointer font-semibold leading-snug mb-2 hover:underline"

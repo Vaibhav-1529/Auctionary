@@ -1,7 +1,18 @@
 "use client";
 import { useState } from "react";
+import ProductComments from "./ProductComments";
 
-export default function ProductBottomTabs() {
+export default function ProductBottomTabs({ 
+  description, 
+  sellerId,
+  auctionId,
+  userId
+}: { 
+  description: string | null; 
+  sellerId: string;
+  auctionId: string;
+  userId: string | null | undefined;
+}) {
   const [active, setActive] = useState("Description");
 
   return (
@@ -11,10 +22,10 @@ export default function ProductBottomTabs() {
           <button
             key={tab}
             onClick={() => setActive(tab)}
-            className={`pb-3 text-sm font-semibold border-b-2 ${
+            className={`pb-3 text-sm font-semibold border-b-2 transition-all ${
               active === tab
                 ? "border-black text-black"
-                : "border-transparent text-muted-foreground"
+                : "border-transparent text-muted-foreground hover:text-black"
             }`}
           >
             {tab}
@@ -22,17 +33,18 @@ export default function ProductBottomTabs() {
         ))}
       </div>
 
-      {active === "Description" && (
-        <p className="text-muted-foreground max-w-4xl">
-          This is a premium auction item. Place your bid before the auction ends.
-        </p>
-      )}
+      <div className="min-h-50">
+        {active === "Description" && (
+          <p className="text-muted-foreground max-w-4xl leading-7">
+            {description || "No description provided for this item."}
+          </p>
+        )}
 
-      {active === "Comments" && (
-        <p className="text-muted-foreground">
-          There are no Comments yet.
-        </p>
-      )}
+        {active === "Comments" && (
+          /* Pass the props down here */
+          <ProductComments auctionId={auctionId} userId={userId || ""} />
+        )}
+      </div>
     </div>
   );
 }
