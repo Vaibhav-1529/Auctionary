@@ -7,6 +7,7 @@ import ParticipatingTab from "@/FunComponents/profile/ParticipatingTab";
 import SellingProductTab from "@/FunComponents/profile/SellingProductTab";
 import { Suspense } from "react";
 import AddFundsModal from "@/FunComponents/AddFundsModal";
+import OrdersTab from "@/FunComponents/profile/OrderTab";
 
 export default async function ProfilePage() {
   const user = await currentUser();
@@ -136,11 +137,7 @@ export default async function ProfilePage() {
 
         <ParticipatingTab />
 
-        <div className="p-10 border-2 border-dashed border-gray-200 rounded-2xl text-center bg-gray-50">
-          <p className="text-gray-400 font-medium">
-            Post-auction logistics and order tracking will appear here.
-          </p>
-        </div>
+        <OrdersTab userId={user.id}/>
 
         <div className="max-w-2xl">
           <h3 className="text-xl font-black mb-6 text-gray-900">

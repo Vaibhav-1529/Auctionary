@@ -55,12 +55,12 @@ function ItemCard({ item, i }: { item: AuctionItem; i: number }) {
         <div
           className={`absolute top-2 left-2 flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border transition-all ${
             item.status === "Live"
-              ? "bg-destructive text-destructive-foreground border-destructive"
+              ? "bg-destructive text-white border-destructive"
               : "bg-muted text-muted-foreground border-border"
           }`}
         >
-          <span className="h-2 w-2 rounded-full bg-black" />
-          {item.status === "Live"
+{item.status=="Live"&&<span className="h-2 w-2 rounded-full bg-white" />
+}          {item.status === "Live"
             ? "LIVE"
             : item.status === "Ended"
             ? "ENDED"
