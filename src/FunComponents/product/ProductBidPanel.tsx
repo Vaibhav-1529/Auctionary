@@ -1,26 +1,29 @@
 "use client";
 
-import { Minus, Plus, Clock } from "lucide-react";
+import { Minus, Plus, Clock, Loader2, Store } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { toast } from "sonner";
 
 export default function ProductBidPanel({ auction, amount, setAmount }: any) {
+  const { userId, getToken } = useAuth();
+
   const displayPrice = auction.current_bid ?? auction.starting_bid;
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState("");
   const [isExpired, setIsExpired] = useState(false);
 
-  const { getToken } = useAuth();
-
   const isSold = !!auction.bought_by;
+  const isSeller = userId === auction.seller_id;
+  const isLive = auction.status === "Live" && !isExpired && !isSold;
 
   const calculateTimeLeft = useCallback(() => {
     if (!auction.ends_at) return;
 
-    const dateStr = auction.ends_at.includes("Z") || auction.ends_at.includes("+")
-      ? auction.ends_at
-      : `${auction.ends_at.replace(" ", "T")}Z`;
+    const dateStr =
+      auction.ends_at.includes("Z") || auction.ends_at.includes("+")
+        ? auction.ends_at
+        : `${auction.ends_at.replace(" ", "T")}Z`;
 
     const target = new Date(dateStr).getTime();
     const now = new Date().getTime();
@@ -48,14 +51,18 @@ export default function ProductBidPanel({ auction, amount, setAmount }: any) {
   }, [calculateTimeLeft]);
 
   async function placeBid() {
-    setError(null);
-
-    if (auction.status !== "Live" || isExpired || isSold) {
-      setError("Auction is no longer accepting bids");
+    if (isSeller) {
+      toast.error("Sellers cannot bid on their own items.");
+      return;
+    }
+    if (!isLive) {
+      toast.error("Auction is no longer accepting bids");
       return;
     }
     if (amount <= displayPrice) {
-      setError(`Bid must be at least ₹${(displayPrice + 1).toLocaleString()}`);
+      toast.error(
+        `Bid must be at least ₹${(displayPrice + 1).toLocaleString()}`
+      );
       return;
     }
 
@@ -63,7 +70,10 @@ export default function ProductBidPanel({ auction, amount, setAmount }: any) {
 
     try {
       const token = await getToken({ template: "supabase" });
-      if (!token) throw new Error("Please log in to place a bid");
+      if (!token) {
+        toast.error("Please log in to place a bid");
+        return;
+      }
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/place-bid`,
@@ -80,83 +90,136 @@ export default function ProductBidPanel({ auction, amount, setAmount }: any) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to place bid");
 
-      alert("🎉 Bid placed successfully!");
+      toast.success("🎉 Bid placed successfully!");
     } catch (err: any) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="p-6 border rounded-2xl bg-white shadow-lg space-y-5">
-      <div className="flex justify-between items-start">
-        
-        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold shadow-sm border transition-all
-          ${auction.status === "Live" && !isExpired && !isSold
-            ? "bg-red-500 text-white border-red-600 animate-pulse" 
-            : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-          <span className={`h-2 w-2 rounded-full ${auction.status === "Live" && !isExpired && !isSold ? "bg-white" : "bg-gray-400"}`} />
-          {isSold ? "SOLD" : isExpired ? "ENDED" : auction.status.toUpperCase()}
+    <div className=" relative p-6 border border-border rounded-2xl bg-card text-card-foreground shadow-lg space-y-5">
+      <div className="flex justify-between items-center">
+        <div
+          className={`absolute top-12 right-10 flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border transition-all ${
+            isLive
+              ? "bg-destructive text-destructive-foreground border-destructive animate-pulse"
+              : "bg-muted text-muted-foreground border-border"
+          }`}
+        >
+          <span
+            className={` h-2 w-2 rounded-full ${
+              auction.status === "Live" ? "bg-black" : "bg-black"
+            }`}
+          />
+          {isSold ? "SOLD" : isExpired ? "ENDED" :auction.status.toUpperCase()}
         </div>
+
+        {isSeller && (
+          <div className="flex items-center gap-1 text-primary bg-primary/10 px-3 py-1 rounded-lg border border-primary/20">
+            <Store size={14} />
+            <span className="text-[10px] font-semibold uppercase tracking-tight">
+              Your Listing
+            </span>
+          </div>
+        )}
       </div>
 
       <div>
-        <h2 className="text-2xl font-black text-gray-900 leading-tight mb-1">{auction.title}</h2>
+        <h2 className="text-2xl font-semibold leading-tight mb-1">
+          {auction.title}
+        </h2>
         <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-black text-green-600">₹{displayPrice.toLocaleString()}</span>
-          <span className="text-xs text-gray-400 font-medium">Current High Bid</span>
+          <span className="text-3xl font-semibold text-accent tracking-tight">
+            ₹{displayPrice.toLocaleString()}
+          </span>
+          <span className="text-xs text-muted-foreground font-semibold uppercase">
+            Current High Bid
+          </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-        <div className="p-2 bg-white rounded-lg shadow-sm">
-          <Clock className={`h-5 w-5 ${isExpired || isSold ? "text-gray-400" : "text-orange-500"}`} />
+      <div className="flex items-center gap-3 p-3 bg-muted rounded-xl border border-border">
+        <div className="p-2 bg-card rounded-lg shadow-sm">
+          <Clock
+            className={`h-5 w-5 ${
+              !isLive ? "text-muted-foreground" : "text-primary"
+            }`}
+          />
         </div>
         <div className="flex flex-col">
-          <span className="text-sm text-gray-400 font-bold uppercase tracking-tighter">Time Remaining</span>
-          <span className={`text-lg font-mono font-bold ${isExpired || isSold ? "text-red-500" : "text-gray-900"}`}>
+          <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
+            Time Remaining
+          </span>
+          <span
+            className={`text-lg font-mono font-semibold ${
+              !isLive ? "text-destructive" : "text-foreground"
+            }`}
+          >
             {timeLeft}
           </span>
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 relative">
+        {(!isLive || isSeller) && (
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center rounded-xl">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+              {isSeller ? "Viewing as Seller" : "Bidding Unavailable"}
+            </span>
+            {isSeller && (
+              <p className="text-[9px] text-muted-foreground mt-1">
+                Sellers cannot bid on their own products.
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="flex items-center gap-4">
-          <div className="flex items-center border-2 border-gray-100 rounded-xl overflow-hidden bg-gray-50">
+          <div className="flex items-center border border-border rounded-xl overflow-hidden bg-muted">
             <button
-              onClick={() => setAmount((v: number) => Math.max(v - 10, displayPrice + 10))}
-              className="px-4 py-3 hover:bg-gray-200 transition-colors disabled:opacity-30"
-              disabled={loading || isExpired || isSold}
+              onClick={() =>
+                setAmount((v: number) => Math.max(v - 10, displayPrice + 10))
+              }
+              className="px-4 py-3 hover:bg-muted/70 transition disabled:opacity-30"
+              disabled={loading || !isLive || isSeller}
             >
-              <Minus size={18} className="text-gray-600" />
+              <Minus size={18} className="text-foreground" />
             </button>
-            <div className="px-4 py-2 min-w-25 text-center font-black text-lg text-gray-800 border-x-2 border-gray-100 bg-white">
+            <div className="px-4 py-2 min-w-25 text-center font-semibold text-lg bg-card border-x border-border">
               ₹{amount.toLocaleString()}
             </div>
             <button
               onClick={() => setAmount((v: number) => v + 10)}
-              className="px-4 py-3 hover:bg-gray-200 transition-colors disabled:opacity-30"
-              disabled={loading || isExpired || isSold}
+              className="px-4 py-3 hover:bg-muted/70 transition disabled:opacity-30"
+              disabled={loading || !isLive || isSeller}
             >
-              <Plus size={18} className="text-gray-600" />
+              <Plus size={18} className="text-foreground" />
             </button>
           </div>
 
           <button
             onClick={placeBid}
-            disabled={auction.status !== "Live" || loading || isExpired || isSold}
-            className="flex-1 bg-gray-900 text-white px-8 py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-black disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-md active:scale-95"
+            disabled={!isLive || loading || isSeller}
+            className="flex-1 bg-primary text-primary-foreground px-8 py-4 rounded-xl font-semibold text-sm uppercase tracking-widest hover:opacity-90 disabled:bg-muted disabled:cursor-not-allowed transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
           >
-            {loading ? "PROCESSING..." : isSold ? "SOLD" : isExpired ? "BIDDING CLOSED" : "PLACE BID"}
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                PROCESSING...
+              </>
+            ) : isSeller ? (
+              "SELLER VIEW"
+            ) : isSold ? (
+              "SOLD"
+            ) : isExpired ? (
+              "BIDDING CLOSED"
+            ) : (
+              "PLACE BID"
+            )}
           </button>
         </div>
-
-        {error && (
-          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-100 rounded-lg">
-            <span className="text-xs text-red-600 font-bold">⚠️ {error}</span>
-          </div>
-        )}
       </div>
     </div>
   );

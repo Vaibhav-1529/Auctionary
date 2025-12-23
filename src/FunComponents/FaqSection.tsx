@@ -4,8 +4,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus } from "lucide-react";
 
-/* ================= DATA ================= */
-
 const faqs = [
   {
     id: "01",
@@ -57,8 +55,6 @@ const faqs = [
   },
 ];
 
-/* ================= COMPONENT ================= */
-
 export default function FaqSection() {
   const [openId, setOpenId] = useState<string | null>("01");
 
@@ -67,16 +63,17 @@ export default function FaqSection() {
   };
 
   return (
-    <section className="relative bg-[#f5e7d8] py-24">
+    <section className="relative bg-muted/40 py-24">
       <div className="max-w-370 mx-auto px-6">
-
         <div className="text-center mb-16">
-          <span className="inline-block text-xs tracking-widest px-4 py-1 rounded-full bg-[#e7d3bd] font-semibold mb-4">
+          <span className="inline-block text-xs tracking-widest px-4 py-1 rounded-full border border-border bg-card text-muted-foreground font-semibold mb-4">
             → QUESTION NOW
           </span>
-          <h2 className="text-4xl lg:text-5xl font-extrabold">
+          <h2 className="text-4xl lg:text-5xl font-semibold text-foreground">
             Frequently Asked{" "}
-            <span className="text-gray-600 font-light">Questions</span>
+            <span className="text-muted-foreground font-normal">
+              Questions
+            </span>
           </h2>
         </div>
 
@@ -85,12 +82,15 @@ export default function FaqSection() {
             const isOpen = openId === faq.id;
 
             return (
-              <div key={faq.id} className="border-b border-black/20 pb-6">
+              <div
+                key={faq.id}
+                className="border-b border-border pb-6"
+              >
                 <button
                   onClick={() => toggle(faq.id)}
                   className="w-full flex items-center justify-between text-left"
                 >
-                  <span className="font-semibold text-lg">
+                  <span className="font-semibold text-lg text-foreground">
                     {faq.id}. {faq.question}
                   </span>
 
@@ -98,7 +98,11 @@ export default function FaqSection() {
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    {isOpen ? <Minus size={20} /> : <Plus size={20} />}
+                    {isOpen ? (
+                      <Minus size={20} />
+                    ) : (
+                      <Plus size={20} />
+                    )}
                   </motion.span>
                 </button>
                 <AnimatePresence initial={false}>
@@ -113,7 +117,7 @@ export default function FaqSection() {
                       }}
                       className="overflow-hidden"
                     >
-                      <p className="mt-4 text-sm text-black/70 leading-relaxed max-w-xl">
+                      <p className="mt-4 text-sm text-muted-foreground leading-relaxed max-w-xl">
                         {faq.answer}
                       </p>
                     </motion.div>

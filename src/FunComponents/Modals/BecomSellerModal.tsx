@@ -16,8 +16,8 @@ export default function BecomeSeller() {
     try {
       await activateSellerAccount(storeName, storeBio);
       setOpen(false);
-      router.refresh(); 
-      window.location.reload(); 
+      router.refresh();
+      window.location.reload();
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -29,35 +29,39 @@ export default function BecomeSeller() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="px-4 py-2 bg-orange-500 text-white rounded font-bold hover:bg-orange-600 transition"
+        className="px-4 py-2 bg-primary text-primary-foreground rounded font-semibold hover:opacity-90 transition"
       >
         Become a Seller
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-            <h2 className="text-2xl font-black mb-2">Create Seller Store</h2>
-            <p className="text-gray-500 text-sm mb-6">Enter your business details to start listing auctions.</p>
+          <div className="bg-card text-card-foreground rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <h2 className="text-2xl font-semibold mb-2">
+              Create Seller Store
+            </h2>
+            <p className="text-muted-foreground text-sm mb-6">
+              Enter your business details to start listing auctions.
+            </p>
 
             <div className="space-y-4">
               <input
                 placeholder="Unique Store Name"
                 value={storeName}
                 onChange={(e) => setStoreName(e.target.value)}
-                className="w-full border-2 p-3 rounded-xl focus:border-orange-500 outline-none transition"
+                className="w-full border border-input p-3 rounded-xl bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
               />
 
               <textarea
                 placeholder="About your store..."
                 value={storeBio}
                 onChange={(e) => setStoreBio(e.target.value)}
-                className="w-full border-2 p-3 h-32 rounded-xl focus:border-orange-500 outline-none transition"
+                className="w-full border border-input p-3 h-32 rounded-xl bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
               />
 
               <div className="flex justify-end gap-3 pt-4">
-                <button 
-                  className="font-bold text-gray-400 px-4" 
+                <button
+                  className="font-medium text-muted-foreground px-4 hover:text-foreground transition"
                   onClick={() => setOpen(false)}
                 >
                   Cancel
@@ -65,7 +69,7 @@ export default function BecomeSeller() {
                 <button
                   onClick={handleCreateSeller}
                   disabled={loading || !storeName}
-                  className="px-6 py-3 bg-orange-500 text-white rounded-xl font-bold disabled:bg-gray-200"
+                  className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 disabled:bg-muted transition"
                 >
                   {loading ? "Activating..." : "Launch Store"}
                 </button>

@@ -4,7 +4,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { Check } from "lucide-react";
 
-
 const steps = [
   {
     title: "Registration",
@@ -33,7 +32,6 @@ const steps = [
   },
 ];
 
-
 export default function HowToSell() {
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -42,30 +40,25 @@ export default function HowToSell() {
     offset: ["start end", "end start"],
   });
 
-  const progressHeight = useTransform(
-    scrollYProgress,
-    [0, 1],
-    ["0%", "100%"]
-  );
+  const progressHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
   return (
     <section
       ref={sectionRef}
-      className="max-w-300 mx-auto px-6 py-32"
+      className="max-w-300 mx-auto px-6 py-32 bg-background"
     >
       <div className="mb-24">
-        <span className="inline-block text-xs tracking-widest px-4 py-1 rounded-full border mb-4">
+        <span className="inline-block text-xs tracking-widest px-4 py-1 rounded-full border border-border bg-muted mb-4">
           HOW TO SELL
         </span>
-        <h2 className="text-4xl font-bold">How To Sell</h2>
+        <h2 className="text-4xl font-bold text-foreground">How To Sell</h2>
       </div>
 
       <div className="relative">
-
-        <div className="absolute left-1/2 top-0 -translate-x-1/2 h-full w-0.5 bg-gray-200">
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 h-full w-0.5 bg-border">
           <motion.div
             style={{ height: progressHeight }}
-            className="absolute top-0 left-0 w-full bg-black origin-top"
+            className="absolute top-0 left-0 w-full bg-primary origin-top"
           />
         </div>
 
@@ -95,13 +88,13 @@ export default function HowToSell() {
                         ease: [0.22, 1, 0.36, 1],
                       }}
                     >
-                      <span className="inline-block text-xs px-3 py-1 bg-gray-100 rounded mb-3">
+                      <span className="inline-block text-xs px-3 py-1 bg-muted rounded mb-3">
                         Step {index + 1}
                       </span>
-                      <h3 className="font-semibold mb-2">
+                      <h3 className="font-semibold mb-2 text-foreground">
                         {step.title}
                       </h3>
-                      <p className="text-sm text-gray-500 max-w-sm ml-auto">
+                      <p className="text-sm text-muted-foreground max-w-sm ml-auto">
                         {step.text}
                       </p>
                     </motion.div>
@@ -109,21 +102,20 @@ export default function HowToSell() {
                 </div>
 
                 <div className="relative flex justify-center">
-                  <motion.div className="w-6 h-6 rounded-full border border-gray-400 bg-white z-10 flex items-center justify-center">
+                  <motion.div className="w-6 h-6 rounded-full border border-border bg-background z-10 flex items-center justify-center">
                     <motion.div
                       style={{ scale: stepProgress }}
-                      className="absolute inset-0 rounded-full bg-black"
+                      className="absolute inset-0 rounded-full bg-primary"
                     />
                     <motion.div
                       style={{ opacity: stepProgress }}
-                      className="relative text-white"
+                      className="relative text-primary-foreground"
                     >
                       <Check size={14} />
                     </motion.div>
                   </motion.div>
                 </div>
 
-                {/* RIGHT */}
                 <div className={!isLeft ? "pl-16" : ""}>
                   {!isLeft && (
                     <motion.div
@@ -135,13 +127,13 @@ export default function HowToSell() {
                         ease: [0.22, 1, 0.36, 1],
                       }}
                     >
-                      <span className="inline-block text-xs px-3 py-1 bg-gray-100 rounded mb-3">
+                      <span className="inline-block text-xs px-3 py-1 bg-muted rounded mb-3">
                         Step {index + 1}
                       </span>
-                      <h3 className="font-semibold mb-2">
+                      <h3 className="font-semibold mb-2 text-foreground">
                         {step.title}
                       </h3>
-                      <p className="text-sm text-gray-500 max-w-sm">
+                      <p className="text-sm text-muted-foreground max-w-sm">
                         {step.text}
                       </p>
                     </motion.div>

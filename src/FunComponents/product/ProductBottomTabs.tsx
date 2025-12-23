@@ -2,13 +2,13 @@
 import { useState } from "react";
 import ProductComments from "./ProductComments";
 
-export default function ProductBottomTabs({ 
-  description, 
+export default function ProductBottomTabs({
+  description,
   sellerId,
   auctionId,
-  userId
-}: { 
-  description: string | null; 
+  userId,
+}: {
+  description: string | null;
   sellerId: string;
   auctionId: string;
   userId: string | null | undefined;
@@ -17,15 +17,15 @@ export default function ProductBottomTabs({
 
   return (
     <div className="mt-24">
-      <div className="flex gap-10 border-b mb-10">
+      <div className="flex gap-10 border-b border-border mb-10">
         {["Description", "Comments"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActive(tab)}
             className={`pb-3 text-sm font-semibold border-b-2 transition-all ${
               active === tab
-                ? "border-black text-black"
-                : "border-transparent text-muted-foreground hover:text-black"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             {tab}
@@ -41,7 +41,6 @@ export default function ProductBottomTabs({
         )}
 
         {active === "Comments" && (
-          /* Pass the props down here */
           <ProductComments auctionId={auctionId} userId={userId || ""} />
         )}
       </div>

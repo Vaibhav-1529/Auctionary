@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
+
 export default function BidsAccordionList({ auctions: initialAuctions }: any) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [liveAuctions, setLiveAuctions] = useState(initialAuctions);
@@ -26,7 +27,6 @@ export default function BidsAccordionList({ auctions: initialAuctions }: any) {
 
       return supabase
         .channel(`live-check-${auctionId}`)
-        // --- LISTENER 1: WATCH PRICE CHANGES ---
         .on(
           "postgres_changes",
           {
@@ -38,14 +38,13 @@ export default function BidsAccordionList({ auctions: initialAuctions }: any) {
           (payload) => {
             setLiveAuctions((prev: any) =>
               prev?.map((a: any) =>
-                a.auction.id === auctionId 
-                  ? { ...a, auction: payload.new } 
+                a.auction.id === auctionId
+                  ? { ...a, auction: payload.new }
                   : a
               )
             );
           }
         )
-        // --- LISTENER 2: WATCH FOR NEW BIDS (The Fix) ---
         .on(
           "postgres_changes",
           {
@@ -60,13 +59,14 @@ export default function BidsAccordionList({ auctions: initialAuctions }: any) {
             setLiveAuctions((prev: any) =>
               prev?.map((a: any) => {
                 if (a.auction.id === auctionId) {
-                  // Add the new bid to the history list if it's not already there
-                  const bidExists = a.bids.some((b: any) => b.id === newBid.id);
+                  const bidExists = a.bids.some(
+                    (b: any) => b.id === newBid.id
+                  );
                   if (bidExists) return a;
 
                   return {
                     ...a,
-                    bids: [newBid, ...a.bids], // Add new bid to the top
+                    bids: [newBid, ...a.bids],
                   };
                 }
                 return a;
@@ -78,54 +78,73 @@ export default function BidsAccordionList({ auctions: initialAuctions }: any) {
     });
 
     return () => {
-      channels.forEach((channel: any) => supabase.removeChannel(channel));
+      channels.forEach((channel: any) =>
+        supabase.removeChannel(channel)
+      );
     };
   }, [initialAuctions]);
+
   const toggle = (id: number) =>
     setExpandedId(expandedId === id ? null : id);
+
   return (
     <div className="space-y-4">
       {liveAuctions.map(({ auction, bids }: any) => {
         const myHighestBid = Math.max(...bids.map((b: any) => b.amount));
-        const isLeading = myHighestBid >= (auction.current_bid || 0);
+        const isLeading =
+          myHighestBid >= (auction.current_bid || 0);
         const isLive = auction.status === "Live";
 
         return (
           <div
             key={auction.id}
-            className={`rounded-xl border transition-all duration-300 bg-white ${
+            className={`rounded-xl border border-border transition-all duration-300 bg-card ${
               expandedId === auction.id
-                ? "border-orange-500 shadow-sm"
-                : "border-gray-100"
+                ? "ring-1 ring-primary/30 shadow-sm"
+                : ""
             }`}
           >
-            {/* HEADER */}
             <button
               onClick={() => toggle(auction.id)}
-              className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50/50 transition"
+              className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/40 transition"
             >
               <div className="flex items-center gap-4">
                 <div
                   className={`h-10 w-10 rounded-lg flex items-center justify-center transition-colors duration-500 ${
-                    isLeading ? "bg-green-100" : "bg-red-100"
+                    isLeading
+                      ? "bg-accent/20"
+                      : "bg-destructive/15"
                   }`}
                 >
                   {isLeading ? (
-                    <Trophy className="h-5 w-5 text-green-600" />
+                    <Trophy className="h-5 w-5 text-accent" />
                   ) : (
-                    <AlertCircle className="h-5 w-5 text-red-600" />
+                    <AlertCircle className="h-5 w-5 text-destructive" />
                   )}
                 </div>
 
                 <div>
-                  <p className="font-bold text-gray-900">{auction.title}</p>
+                  <p className="font-semibold text-foreground">
+                    {auction.title}
+                  </p>
                   <div className="flex items-center gap-2">
-                    <p className="text-xs text-gray-500">
-                      My max: ₹{myHighestBid.toLocaleString()}
+                    <p className="text-xs text-muted-foreground">
+                      My max: ₹
+                      {myHighestBid.toLocaleString()}
                     </p>
-                    <span className="text-[10px] text-gray-300">|</span>
-                    <p className={`text-xs font-bold ${isLeading ? "text-green-600" : "text-red-600"}`}>
-                      {isLeading ? "Leading" : `Current: ₹${auction.current_bid?.toLocaleString()}`}
+                    <span className="text-[10px] text-muted-foreground">
+                      |
+                    </span>
+                    <p
+                      className={`text-xs font-semibold ${
+                        isLeading
+                          ? "text-accent"
+                          : "text-destructive"
+                      }`}
+                    >
+                      {isLeading
+                        ? "Leading"
+                        : `Current: ₹${auction.current_bid?.toLocaleString()}`}
                     </p>
                   </div>
                 </div>
@@ -133,33 +152,38 @@ export default function BidsAccordionList({ auctions: initialAuctions }: any) {
 
               <div className="flex items-center gap-4">
                 <span
-                  className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md border ${
+                  className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md border ${
                     isLive
-                      ? "bg-orange-50 text-orange-600 border-orange-100 animate-pulse"
-                      : "bg-gray-50 text-gray-400 border-gray-100"
+                      ? "bg-primary/10 text-primary border-primary/20 animate-pulse"
+                      : "bg-muted text-muted-foreground border-border"
                   }`}
                 >
                   {auction.status}
                 </span>
 
                 {expandedId === auction.id ? (
-                  <ChevronUp size={18} className="text-gray-400" />
+                  <ChevronUp
+                    size={18}
+                    className="text-muted-foreground"
+                  />
                 ) : (
-                  <ChevronDown size={18} className="text-gray-400" />
+                  <ChevronDown
+                    size={18}
+                    className="text-muted-foreground"
+                  />
                 )}
               </div>
             </button>
 
-            {/* CONTENT */}
             {expandedId === auction.id && (
-              <div className="border-t bg-gray-50/50 p-4 space-y-4 animate-in slide-in-from-top-1 duration-200">
+              <div className="border-t border-border bg-muted/30 p-4 space-y-4 animate-in slide-in-from-top-1 duration-200">
                 <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
                     Bid History
                   </p>
                   <Link
                     href={`/product/${auction.id}`}
-                    className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 transition"
+                    className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 transition"
                   >
                     Go to Auction <ExternalLink size={12} />
                   </Link>
@@ -169,17 +193,20 @@ export default function BidsAccordionList({ auctions: initialAuctions }: any) {
                   {bids.map((bid: any, idx: number) => (
                     <div
                       key={idx}
-                      className="flex justify-between items-center bg-white border border-gray-100 rounded-xl px-4 py-2.5 shadow-sm"
+                      className="flex justify-between items-center bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm"
                     >
-                      <span className="text-gray-400 text-[11px] font-medium">
-                        {new Date(bid.created_at).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                      <span className="text-muted-foreground text-[11px] font-medium">
+                        {new Date(bid.created_at).toLocaleDateString(
+                          "en-IN",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
                       </span>
-                      <span className="font-bold text-gray-700">
+                      <span className="font-semibold text-foreground">
                         ₹{bid.amount.toLocaleString()}
                       </span>
                     </div>
@@ -187,16 +214,19 @@ export default function BidsAccordionList({ auctions: initialAuctions }: any) {
                 </div>
 
                 {!isLeading && isLive && (
-                  <div className="mt-2 flex items-center justify-between rounded-xl bg-red-50 border border-red-100 px-4 py-3">
+                  <div className="mt-2 flex items-center justify-between rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <AlertCircle size={14} className="text-red-600" />
-                      <span className="text-red-700 text-xs font-bold">
+                      <AlertCircle
+                        size={14}
+                        className="text-destructive"
+                      />
+                      <span className="text-destructive text-xs font-semibold">
                         Someone placed a higher bid!
                       </span>
                     </div>
                     <Link
                       href={`/product/${auction.id}`}
-                      className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight hover:bg-red-700 transition shadow-sm"
+                      className="bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-tight hover:opacity-90 transition shadow-sm"
                     >
                       Rebid Now
                     </Link>

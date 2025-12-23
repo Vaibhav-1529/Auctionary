@@ -1,38 +1,38 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Bell, Gavel, Trophy, Package, Clock } from "lucide-react";
+import { Bell, Gavel, Trophy, Clock } from "lucide-react";
 import { markNotificationAsRead } from "@/app/actions/notification";
 import { supabase } from "@/lib/supabase/client";
-import { formatDistanceToNow } from "date-fns"; // Recommended for real time strings
+import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 
 export default function NotificationBell({ userId }: { userId: string }) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [IsRing, setIsRing] = useState(false);
+  const [isRing, setIsRing] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const router = useRouter();
+
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+
   useEffect(() => {
     if (!userId) return;
+
     const fetchInitial = async () => {
-      console.log("Fetching notifications for:", userId);
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("notifications")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(15);
 
-      if (error) {
-        console.error("Fetch error:", error.message);
-      } else {
-        console.log("Initial Notifications Loaded:", data?.length);
-        setNotifications(data || []);
-      }
+      if (data) setNotifications(data);
     };
+
     fetchInitial();
+
     const channel = supabase
       .channel(`user-notifications-${userId}`)
       .on(
@@ -44,128 +44,118 @@ export default function NotificationBell({ userId }: { userId: string }) {
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          console.log("Realtime Notification Received:", payload.new);
           setNotifications((prev) => [payload.new, ...prev]);
           setIsRing(true);
         }
       )
-      .subscribe((status) => {
-        console.log("Realtime Status:", status);
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, [userId]);
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     audioRef.current = new Audio("/mixkit-correct-answer-tone-2870.wav");
   }, []);
-  useEffect(() => {
-    if (IsRing && audioRef.current) {
-      audioRef.current.play().catch((error) => {
-        console.log("Autoplay blocked or audio error:", error);
-      });
 
+  useEffect(() => {
+    if (isRing && audioRef.current) {
+      audioRef.current.play().catch(() => {});
       const timer = setTimeout(() => setIsRing(false), 2000);
       return () => clearTimeout(timer);
     }
-  }, [IsRing]);
+  }, [isRing]);
+
   const handleRead = async (id: string, link: string) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
     );
-    try {
-      await markNotificationAsRead(id);
-      router.push(link);
-    } catch (err) {
-      console.error("Failed to sync read status:", err);
-    }
+    await markNotificationAsRead(id);
+    router.push(link);
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-full hover:bg-gray-100 transition-all duration-200"
+        className="relative p-2 rounded-full hover:bg-muted transition"
       >
         <Bell
-          size={24}
-          className={unreadCount > 0 ? "text-orange-500" : "text-gray-600"}
+          size={22}
+          className={unreadCount > 0 ? "text-primary" : "text-muted-foreground"}
         />
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-white animate-in zoom-in">
+          <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border border-background">
             {unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 bg-white shadow-2xl rounded-2xl border border-gray-100 z-100 overflow-hidden animate-in fade-in slide-in-from-top-2">
-          <div className="p-4 border-b bg-gray-50/50 flex justify-between items-center">
-            <span className="font-bold text-sm text-gray-800">
-              Notifications
-            </span>
+        <div className="absolute right-0 mt-3 w-80 bg-popover text-popover-foreground shadow-xl rounded-2xl border border-border z-50 overflow-hidden">
+          <div className="p-4 border-b border-border bg-muted/40 flex justify-between items-center">
+            <span className="font-semibold text-sm">Notifications</span>
             {unreadCount > 0 && (
-              <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-bold uppercase">
+              <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase">
                 {unreadCount} New
               </span>
             )}
           </div>
 
-          <div className="max-h-87.5 overflow-y-auto">
+          <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
               <div className="p-10 text-center flex flex-col items-center gap-2">
-                <Bell size={32} className="text-gray-200" />
-                <p className="text-gray-400 text-xs">No notifications yet</p>
+                <Bell size={32} className="text-muted-foreground/40" />
+                <p className="text-muted-foreground text-xs">
+                  No notifications yet
+                </p>
               </div>
             ) : (
               notifications.map((n) => (
                 <div
                   key={n.id}
                   onClick={() => handleRead(n.id, n.link)}
-                  className={`p-4 border-b last:border-0 flex gap-3 hover:bg-gray-50 cursor-pointer transition-colors ${
+                  className={`p-4 border-b border-border last:border-0 flex gap-3 cursor-pointer transition ${
                     !n.is_read
-                      ? "bg-blue-50/40 border-l-4 border-l-blue-500"
-                      : "opacity-80"
+                      ? "bg-primary/5 border-l-4 border-l-primary"
+                      : "hover:bg-muted/50"
                   }`}
                 >
                   <div className="mt-1 shrink-0">
                     {n.type === "outbid" ? (
-                      <Gavel size={16} className="text-orange-500" />
+                      <Gavel size={16} className="text-primary" />
                     ) : n.type === "won" ? (
                       <Trophy size={16} className="text-yellow-500" />
                     ) : (
-                      <Bell size={16} className="text-blue-500" />
+                      <Bell size={16} className="text-secondary" />
                     )}
                   </div>
+
                   <div className="flex-1 min-w-0">
                     <p
                       className={`text-xs truncate ${
                         !n.is_read
-                          ? "font-bold text-gray-900"
-                          : "font-medium text-gray-600"
+                          ? "font-semibold text-foreground"
+                          : "text-muted-foreground"
                       }`}
                     >
                       {n.title}
                     </p>
-                    <p className="text-[11px] text-gray-500 line-clamp-2 mt-0.5">
+                    <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">
                       {n.message}
                     </p>
-                    <div className="flex items-center gap-1 mt-2 text-[9px] text-gray-400 font-bold uppercase">
+                    <div className="flex items-center gap-1 mt-2 text-[9px] text-muted-foreground uppercase font-semibold">
                       <Clock size={10} />
                       {n.created_at
                         ? formatDistanceToNow(new Date(n.created_at), {
@@ -174,16 +164,17 @@ export default function NotificationBell({ userId }: { userId: string }) {
                         : "Recently"}
                     </div>
                   </div>
+
                   {!n.is_read && (
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 self-start shrink-0" />
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2" />
                   )}
                 </div>
               ))
             )}
           </div>
 
-          <div className="p-3 bg-gray-50 border-t text-center">
-            <button className="text-[11px] font-bold text-gray-500 hover:text-black transition-colors uppercase">
+          <div className="p-3 bg-muted/40 border-t border-border text-center">
+            <button className="text-[11px] font-semibold text-muted-foreground hover:text-foreground transition uppercase">
               View All
             </button>
           </div>

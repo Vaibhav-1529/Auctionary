@@ -13,7 +13,6 @@ import { motion, Variants } from "framer-motion";
 import { useEffect, useState } from "react";
 import type { CarouselApi } from "@/components/ui/carousel";
 
-
 const slides = [
   {
     bg: "#8b5a3c",
@@ -35,7 +34,6 @@ const slides = [
   },
 ];
 
-
 const textItem: Variants = {
   hidden: { opacity: 0, y: 30 },
   show: {
@@ -46,7 +44,7 @@ const textItem: Variants = {
 };
 
 const imageVariant: Variants = {
-  hidden: { opacity: 0, x: 80, scale: 0.90 },
+  hidden: { opacity: 0, x: 80, scale: 0.9 },
   show: {
     opacity: 1,
     x: 0,
@@ -55,16 +53,13 @@ const imageVariant: Variants = {
   },
 };
 
-
 export default function FeaturedAuctionCarousel() {
   const [api, setApi] = useState<CarouselApi | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     if (!api) return;
-
     setActiveIndex(api.selectedScrollSnap());
-
     api.on("select", () => {
       setActiveIndex(api.selectedScrollSnap());
     });
@@ -72,11 +67,7 @@ export default function FeaturedAuctionCarousel() {
 
   return (
     <section className="max-w-370 mx-auto px-6 py-10">
-      <Carousel
-        opts={{ loop: true }}
-        setApi={setApi}
-        className="relative"
-      >
+      <Carousel opts={{ loop: true }} setApi={setApi} className="relative">
         <CarouselContent>
           {slides.map((slide, index) => {
             const isActive = index === activeIndex;
@@ -84,28 +75,27 @@ export default function FeaturedAuctionCarousel() {
             return (
               <CarouselItem key={index}>
                 <div
-                  className="relative overflow-hidden rounded-[28px] text-white"
+                  className="relative overflow-hidden rounded-[28px] text-primary-foreground"
                   style={{ backgroundColor: slide.bg }}
                 >
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
-                    <div className="bg-orange-500 h-20 w-18 flex flex-col justify-center items-center text-lg font-semibold px-4 py-2 rounded-b-[32px]">
+                    <div className="bg-primary h-20 w-18 flex flex-col justify-center items-center text-sm font-semibold px-4 py-2 rounded-b-[32px]">
                       <p>HOT</p>
                       <p>NOW</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 items-center">
-
                     <div className="p-10 lg:p-16 space-y-6">
                       <motion.div
                         variants={textItem}
                         initial="hidden"
                         animate={isActive ? "show" : "hidden"}
                       >
-                        <p className="text-sm text-white/70 mb-1">
+                        <p className="text-sm text-primary-foreground/70 mb-1">
                           Starting bid:
                         </p>
-                        <h2 className="text-4xl font-extrabold">
+                        <h2 className="text-4xl font-semibold">
                           {slide.price}
                         </h2>
                       </motion.div>
@@ -114,7 +104,7 @@ export default function FeaturedAuctionCarousel() {
                         variants={textItem}
                         initial="hidden"
                         animate={isActive ? "show" : "hidden"}
-                        className="text-3xl lg:text-4xl font-bold max-w-md"
+                        className="text-3xl lg:text-4xl font-semibold max-w-md"
                       >
                         {slide.title}
                       </motion.h1>
@@ -124,7 +114,7 @@ export default function FeaturedAuctionCarousel() {
                         initial="hidden"
                         animate={isActive ? "show" : "hidden"}
                       >
-                        <Button className="mt-6 px-8 py-6 text-xl font-semibold bg-orange-500 rounded-lg">
+                        <Button className="mt-6 px-8 py-6 text-lg font-semibold bg-primary text-primary-foreground rounded-lg hover:opacity-90">
                           Bid Now
                         </Button>
                       </motion.div>
@@ -155,8 +145,8 @@ export default function FeaturedAuctionCarousel() {
           })}
         </CarouselContent>
 
-        <CarouselPrevious className="left-6" />
-        <CarouselNext className="right-6" />
+        <CarouselPrevious className="left-6 bg-card border-border text-foreground hover:bg-muted" />
+        <CarouselNext className="right-6 bg-card border-border text-foreground hover:bg-muted" />
       </Carousel>
     </section>
   );

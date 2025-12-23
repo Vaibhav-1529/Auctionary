@@ -20,16 +20,16 @@ export default function ProfileTabs({
 
   return (
     <div>
-      <div className="flex gap-6 border-b mb-8">
+      <div className="flex gap-6 border-b border-border mb-8">
         {tabs.map((tab, i) => (
           <button
             key={tab}
             onClick={() => setActive(i)}
             className={clsx(
-              "pb-3 text-sm font-medium transition",
+              "pb-3 text-sm font-semibold transition-colors",
               active === i
-                ? "border-b-2 border-orange-500 text-orange-500"
-                : "text-muted-foreground hover:text-black"
+                ? "border-b-2 border-primary text-primary"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             {tab}

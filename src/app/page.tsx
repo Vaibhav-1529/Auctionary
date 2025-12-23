@@ -11,6 +11,7 @@ import HowToBid from "@/FunComponents/HowToBid";
 import FeaturedHighlights from "@/FunComponents/FeaturedHighlights";
 import InsightsFromAuctions from "@/FunComponents/InsightsFromAuctions";
 import AuctionByCategory from "@/FunComponents/AuctionByCategory";
+import HomeAuctionIntro from "@/FunComponents/HomeAuctionIntro";
 
 const textContainer: Variants = {
   hidden: {},
@@ -110,7 +111,7 @@ export default function Home() {
 
                 <Button
                   variant="outline"
-                  className="px-8 py-7 text-lg font-bold rounded-full bg-white text-black border-none hover:bg-gray-100 transition-transform hover:scale-105 active:scale-95"
+                  className="px-8 py-7 text-lg font-bold rounded-full bg-white text-black border-none hover:bg-gray-100 transition-transform hover:text-orange-400 hover:scale-105 active:scale-95"
                 >
                   View All Auction
                 </Button>
@@ -174,7 +175,8 @@ export default function Home() {
         </div>
       </section>
 
-      <main className="space-y-20 py-20">
+      <main className="space-y-10 py-15">
+        <HomeAuctionIntro/>
         <ItemsRow />
         <HotBidsModal />
         <AuctionByCategory />

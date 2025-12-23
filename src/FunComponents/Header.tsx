@@ -31,33 +31,23 @@ import NotificationBell from "./Notification";
 const sidebarVariants: Variants = {
   open: {
     x: 0,
-    scale: 1,
     transition: {
       type: "spring",
       stiffness: 240,
       damping: 26,
-      when: "beforeChildren",
-      staggerChildren: 0.09,
-      delayChildren: 0.2,
+      staggerChildren: 0.08,
     },
   },
   closed: {
     x: "-100%",
-    scale: 0.98,
     transition: {
       type: "spring",
       stiffness: 300,
       damping: 35,
-      when: "afterChildren",
-      staggerChildren: 0.06,
+      staggerChildren: 0.05,
       staggerDirection: -1,
     },
   },
-};
-
-const itemVariants: Variants = {
-  open: { y: 0, opacity: 1 },
-  closed: { y: 30, opacity: 0 },
 };
 
 const navLinks = [
@@ -74,236 +64,173 @@ export default function Header() {
   const { isLoaded, isSignedIn, user } = useUser();
 
   useEffect(() => {
-    const syncUserProfile = async () => {
-      if (isLoaded && isSignedIn && user) {
-        const { error } = await supabase.from("profiles").upsert({
-          id: user.id,
-          full_name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
-          email: user.primaryEmailAddress?.emailAddress,
-          avatar_url: user.imageUrl,
-        });
-
-        if (error) {
-          console.error("Error syncing profile:", error.message);
-        }
-      }
-    };
-
-    syncUserProfile();
+    if (isLoaded && isSignedIn && user) {
+      supabase.from("profiles").upsert({
+        id: user.id,
+        full_name: user.fullName,
+        email: user.primaryEmailAddress?.emailAddress,
+        avatar_url: user.imageUrl,
+      });
+    }
   }, [isLoaded, isSignedIn, user]);
 
   return (
-    <header className="border-b bg-white sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto">
-        {/* Top Bar - Hidden on Mobile */}
-        <div className="lg:flex hidden items-center justify-between px-6 py-2 text-sm text-muted-foreground border-b">
+    <header className="sticky top-0 z-50 border-b bg-background">
+      <div className="max-w-350 mx-auto px-6">
+        {/* TOP BAR */}
+        <div className="hidden lg:flex items-center justify-between py-2 text-sm text-muted-foreground border-b">
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              <span>info@auctionary.com</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Headphones className="h-4 w-4" />
-              <span>Customer support</span>
-            </div>
+            <span className="flex items-center gap-2">
+              <Mail size={14} /> info@auctionary.com
+            </span>
+            <span className="flex items-center gap-2">
+              <Headphones size={14} /> Customer Support
+            </span>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm">
-              How to Bid
-            </Button>
-            <Button variant="outline" size="sm">
-              Sell Your Item
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  Language
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>English</DropdownMenuItem>
-                <DropdownMenuItem>Hindi</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="flex items-center gap-3 ">
+            <Button variant="outline" size="sm" className="hover:text-black">How to Bid</Button>
+            <Button variant="outline" size="sm" className="hover:text-black">Sell Item</Button>
           </div>
         </div>
 
-        {/* Main Header */}
-        <div className="flex items-center justify-between px-6 py-4">
+        {/* MAIN NAV */}
+        <div className="flex items-center justify-between py-4">
           <Link href="/" className="leading-tight">
-            <span className="text-2xl font-extrabold">
-              Auction<span className="text-orange-500">ary</span>
-            </span>
-            <p className="text-xs text-muted-foreground font-medium">
-              Bid Smart. Win Big.
+            <p className="text-2xl font-extrabold">
+              Auction<span className="text-primary">ary</span>
             </p>
+            <span className="text-xs text-muted-foreground">
+              Bid Smart. Win Big.
+            </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8 font-semibold">
             {navLinks.map((item) => (
-              <motion.div key={item.name} whileHover={{ scale: 1.05 }}>
-                <Link
-                  href={item.href}
-                  className="cursor-pointer hover:text-orange-500 transition-colors"
-                >
-                  {item.name}
-                </Link>
-              </motion.div>
+              <Link
+                key={item.name}
+                href={item.href}
+                className="hover:text-primary transition"
+              >
+                {item.name}
+              </Link>
             ))}
           </nav>
 
-          {/* Search & Actions */}
           <div className="flex items-center gap-4">
             <div className="relative hidden md:block">
               <Input
-                placeholder="Search products..."
-                className="pr-10 w-64 rounded-full bg-gray-50 border-gray-200"
+                placeholder="Search auctions..."
+                className="w-64 rounded-full pr-10"
               />
               <Search className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
             </div>
 
-            {isLoaded && isSignedIn && user?.id ? (
-              <NotificationBell userId={user.id} />
+            {isSignedIn ? (
+              <NotificationBell userId={user!.id} />
             ) : (
-              <div className="p-2 text-gray-300">
-                <Bell size={24} />
-              </div>
+              <Bell className="text-muted-foreground" />
             )}
 
-            {!isLoaded ? (
-              <div className="h-10 w-32 bg-gray-100 animate-pulse rounded-md hidden md:block" />
-            ) : !isSignedIn ? (
+            {!isSignedIn ? (
               <SignInButton mode="modal">
-                <Button className="gap-2 hidden md:flex rounded-full">
-                  <User className="h-4 w-4" /> My Account
+                <Button className="hidden md:flex rounded-full">
+                  <User size={16} /> My Account
                 </Button>
               </SignInButton>
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button className="gap-2 hidden md:flex rounded-full bg-orange-500 hover:bg-orange-600">
-                    <User className="h-4 w-4" />
-                    {user?.firstName ?? "Profile"}
+                  <Button className="hidden md:flex rounded-full bg-primary text-primary-foreground">
+                    <User size={16} />
+                    {user?.firstName}
                   </Button>
                 </DropdownMenuTrigger>
+
+                {/* ✅ FIXED PROFILE DROPDOWN */}
                 <DropdownMenuContent
                   align="end"
-                  className="w-56 mt-2 rounded-xl"
+                  className="w-56 rounded-xl p-2"
                 >
-                  <DropdownMenuItem asChild className="cursor-pointer">
+                  <DropdownMenuItem asChild>
                     <Link
                       href="/profile"
-                      className="flex items-center gap-2 p-2"
+                      className="profile-menu-item"
                     >
-                      <Settings className="h-4 w-4" /> Profile Settings
+                      <Settings size={16} /> Profile Settings
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer">
+
+                  <DropdownMenuItem asChild>
                     <Link
                       href="/dashboard"
-                      className="flex items-center gap-2 p-2"
+                      className="profile-menu-item"
                     >
-                      <LayoutDashboard className="h-4 w-4" /> My Bids & Auctions
+                      <LayoutDashboard size={16} /> My Bids & Auctions
                     </Link>
                   </DropdownMenuItem>
+
                   <DropdownMenuItem
-                    className="text-red-600 cursor-pointer p-2"
                     onClick={() => signOut({ redirectUrl: "/" })}
+                    className="profile-menu-item text-destructive hover:bg-destructive/10"
                   >
-                    <LogOut className="h-4 w-4 mr-2" /> Logout
+                    <LogOut size={16} /> Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
 
-            {/* Mobile Menu Toggle */}
             <Button
-              variant="ghost"
               size="icon"
+              variant="ghost"
               className="md:hidden"
               onClick={() => setOpen(true)}
             >
-              <Menu size={24} />
+              <Menu />
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Sidebar */}
+      {/* MOBILE DRAWER */}
       <AnimatePresence>
         {open && (
           <>
             <motion.div
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+              onClick={() => setOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-60 bg-black/40 md:hidden backdrop-blur-sm"
-              onClick={() => setOpen(false)}
             />
             <motion.aside
+              className="fixed left-0 top-0 h-full w-80 bg-background z-50 p-6"
               variants={sidebarVariants}
               initial="closed"
               animate="open"
               exit="closed"
-              className="fixed inset-y-0 left-0 z-70 w-80 bg-white shadow-2xl p-6 md:hidden"
             >
-              <div className="flex items-center justify-between mb-8">
-                <span className="text-xl font-extrabold">
-                  Auction<span className="text-orange-500">ary</span>
+              <div className="flex justify-between mb-6">
+                <span className="text-xl font-bold">
+                  Auction<span className="text-primary">ary</span>
                 </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setOpen(false)}
-                >
+                <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
                   <X />
                 </Button>
               </div>
 
-              {isLoaded && isSignedIn && (
-                <div className="mb-8 p-4 bg-orange-50 rounded-2xl flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-bold">
-                    {user.firstName?.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold">{user.fullName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {user.primaryEmailAddress?.emailAddress}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <motion.nav className="space-y-4 font-semibold">
+              <nav className="space-y-4">
                 {navLinks.map((item) => (
-                  <motion.div
+                  <Link
                     key={item.name}
-                    variants={itemVariants}
-                    whileHover={{ x: 8 }}
-                    className="border-b border-gray-50 pb-2"
+                    href={item.href}
+                    className="flex justify-between py-2 border-b hover:text-primary"
+                    onClick={() => setOpen(false)}
                   >
-                    <Link
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className="flex items-center justify-between hover:text-orange-500 py-2"
-                    >
-                      <span>{item.name}</span>
-                      <Plus className="h-4 w-4 text-gray-400" />
-                    </Link>
-                  </motion.div>
+                    {item.name}
+                    <Plus size={14} />
+                  </Link>
                 ))}
-              </motion.nav>
-
-              {isLoaded && isSignedIn && (
-                <Button
-                  variant="destructive"
-                  className="w-full mt-10 rounded-full"
-                  onClick={() => signOut({ redirectUrl: "/" })}
-                >
-                  <LogOut className="mr-2 h-4 w-4" /> Logout
-                </Button>
-              )}
+              </nav>
             </motion.aside>
           </>
         )}

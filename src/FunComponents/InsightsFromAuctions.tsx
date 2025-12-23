@@ -6,13 +6,16 @@ import { Button } from "@/components/ui/button";
 
 export default function InsightsFromAuctions() {
   return (
-    <section className="max-w-370 w-full mx-auto px-6 py-24">
-      <div className="flex items-center justify-between mb-14">
+    <section className="max-w-370 w-full mx-auto px-4 sm:px-6 py-16 sm:py-24 bg-background">
+      
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-12">
         <div>
-          <span className="inline-block text-xs tracking-widest px-4 py-1 rounded-full border bg-muted/40 mb-3">
+          <span className="inline-block text-xs tracking-widest px-4 py-1 rounded-full border border-border bg-muted mb-3">
             → READ OUR
           </span>
-          <h2 className="text-4xl font-bold leading-tight">
+
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight text-foreground">
             Insights From The{" "}
             <span className="text-muted-foreground font-normal">
               Auctions.
@@ -22,15 +25,15 @@ export default function InsightsFromAuctions() {
 
         <Button
           variant="ghost"
-          className="group gap-2 text-sm font-medium"
+          className="group gap-2 text-sm font-medium text-foreground hover:text-primary self-start sm:self-auto"
         >
           View All Article
           <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-
+      {/* ARTICLES */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10">
         <ArticleCard
           image="https://images.unsplash.com/photo-1513364776144-60967b0f800f"
           meta="Real State · October 3, 2024"
@@ -47,7 +50,6 @@ export default function InsightsFromAuctions() {
   );
 }
 
-
 function ArticleCard({
   image,
   meta,
@@ -58,37 +60,31 @@ function ArticleCard({
   title: string;
 }) {
   return (
-    <article
-      className="
-        group relative overflow-hidden rounded-2xl border
-        bg-white transition-all duration-300
-        hover:shadow-xl hover:-translate-y-1
-      "
-    >
-      <div className="relative h-70 overflow-hidden">
+    <article className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+      
+      {/* IMAGE */}
+      <div className="relative h-56 sm:h-64 md:h-70 overflow-hidden">
         <Image
           src={image}
           alt={title}
           fill
-          className="
-            object-cover transition-transform duration-700
-            group-hover:scale-110
-          "
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="object-cover transition-transform duration-700 group-hover:scale-110"
         />
-
-        <div className="absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      <div className="p-7 space-y-4">
+      {/* CONTENT */}
+      <div className="p-5 sm:p-7 space-y-4">
         <p className="text-xs text-muted-foreground">{meta}</p>
 
-        <h3 className="text-xl font-semibold leading-snug max-w-md transition-colors group-hover:text-orange-600">
+        <h3 className="text-lg sm:text-xl font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
           {title}
         </h3>
 
         <Button
           variant="ghost"
-          className="group/btn px-0 gap-2 text-sm font-medium"
+          className="group/btn px-0 gap-2 text-sm font-medium text-foreground hover:text-primary"
         >
           Read More
           <ArrowUpRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />

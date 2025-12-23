@@ -20,7 +20,7 @@ export default function ItemsRow() {
 
   useEffect(() => {
     const fetchAuctions = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("auction_items")
         .select("*")
         .eq("status", "Live")
@@ -52,7 +52,7 @@ export default function ItemsRow() {
     }, AUTO_DELAY);
 
     return () => clearInterval(timer);
-  }, [items.length, maxIndex]);
+  }, [items.length]);
 
   useEffect(() => {
     if (items.length === 0) return;
@@ -76,37 +76,37 @@ export default function ItemsRow() {
   if (items.length === 0) return null;
 
   return (
-    <section className="relative py-10 my-10">
-      <div className="absolute inset-0 bg-linear-to-br from-[#f3f7e9] via-[#f6faef] to-[#eef4df]" />
-
-      <div className="relative max-w-370 mx-auto px-6 py-10 overflow-hidden">
+    <section className="relative py-10 my-14 bg-muted/40">
+      <div className="relative max-w-370 mx-auto px-6 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="flex items-center justify-between mb-8"
+          className="flex items-center justify-between mb-10"
         >
           <div>
-            <span className="inline-block text-sm tracking-widest px-3 py-1 rounded-full bg-orange-50 text-orange-500 font-semibold mb-2">
-              → BIDDING OUR
+            <span className="inline-block text-xs tracking-widest px-3 py-1 rounded-full bg-primary/10 text-primary font-semibold mb-2">
+              → BIDDING NOW
             </span>
-            <h2 className="text-5xl font-bold">
+            <h2 className="text-4xl font-bold text-foreground">
               Live{" "}
-              <span className="text-muted-foreground font-light">Auction</span>
+              <span className="text-muted-foreground font-light">
+                Auctions
+              </span>
             </h2>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={prev}
-              className="w-10 h-10 rounded-full border flex items-center justify-center hover:bg-gray-100 transition"
+              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted transition"
             >
               <ChevronLeft size={18} />
             </button>
             <button
               onClick={next}
-              className="w-10 h-10 rounded-full border flex items-center justify-center hover:bg-gray-100 transition"
+              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted transition"
             >
               <ChevronRight size={18} />
             </button>
