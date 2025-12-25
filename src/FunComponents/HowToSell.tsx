@@ -1,147 +1,106 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
-import { Check } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+  UserPlus,
+  Package,
+  Gavel,
+  CheckCircle2,
+  DollarSign,
+} from "lucide-react";
 
-const steps = [
+const sellSteps = [
   {
-    title: "Registration",
-    text:
-      "Clearly state your pricing structure, payment terms, and any additional charges. Simplify them to avoid confusion.",
+    icon: <UserPlus size={20} />,
+    title: "Register an Account",
+    desc: "Create your seller profile with basic information to get started on the platform.",
+    step: "Step 01",
   },
   {
-    title: "Select Platform",
-    text:
-      "Clearly state your pricing structure, payment terms, and any additional charges. Simplify them to avoid confusion.",
+    icon: <Package size={20} />,
+    title: "List Your Item",
+    desc: "Upload product images, add details, and set your starting price for bidding.",
+    step: "Step 02",
   },
   {
-    title: "Listing the Item",
-    text:
-      "Clearly state your pricing structure, payment terms, and any additional charges. Simplify them to avoid confusion.",
+    icon: <Gavel size={20} />,
+    title: "Start the Auction",
+    desc: "Publish your listing and allow buyers to place competitive bids in real time.",
+    step: "Step 03",
   },
   {
-    title: "Managing the Auction",
-    text:
-      "Clearly state your pricing structure, payment terms, and any additional charges. Simplify them to avoid confusion.",
-  },
-  {
-    title: "Closing the Auction",
-    text:
-      "Clearly state your pricing structure, payment terms, and any additional charges. Simplify them to avoid confusion.",
+    icon: <DollarSign size={20} />,
+    title: "Receive Payment",
+    desc: "Once the auction ends, the highest bidder wins and payment is securely processed.",
+    step: "Step 04",
   },
 ];
 
 export default function HowToSell() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  });
-
-  const progressHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
-
   return (
-    <section
-      ref={sectionRef}
-      className="max-w-300 mx-auto px-6 py-32 bg-background"
-    >
-      <div className="mb-24">
-        <span className="inline-block text-xs tracking-widest px-4 py-1 rounded-full border border-border bg-muted mb-4">
-          HOW TO SELL
-        </span>
-        <h2 className="text-4xl font-bold text-foreground">How To Sell</h2>
-      </div>
-
-      <div className="relative">
-        <div className="absolute left-1/2 top-0 -translate-x-1/2 h-full w-0.5 bg-border">
-          <motion.div
-            style={{ height: progressHeight }}
-            className="absolute top-0 left-0 w-full bg-primary origin-top"
-          />
+    <section className="py-20 bg-background overflow-hidden">
+      <div className="max-w-5xl mx-auto px-6">
+        {/* Header */}
+        <div className="text-center mb-20">
+          <span className="inline-block text-xs font-semibold tracking-widest text-primary bg-primary/10 px-4 py-1 rounded-full mb-4">
+            SELLER GUIDE
+          </span>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-foreground">
+            How to Sell on Our Platform
+          </h2>
         </div>
 
-        <div className="space-y-32">
-          {steps.map((step, index) => {
-            const isLeft = index % 2 === 0;
+        {/* Timeline */}
+        <div className="relative">
+          {/* Vertical Line */}
+          <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-[2px] bg-border -translate-x-1/2" />
 
-            const stepProgress = useTransform(
-              scrollYProgress,
-              [index / steps.length, (index + 1) / steps.length],
-              [0, 1]
-            );
-
-            return (
+          <div className="space-y-24">
+            {sellSteps.map((step, index) => (
               <div
                 key={index}
-                className="relative grid grid-cols-[1fr_auto_1fr] items-start"
+                className="relative flex flex-col md:flex-row items-center justify-between"
               >
-                <div className={isLeft ? "pr-16 text-right" : ""}>
-                  {isLeft && (
-                    <motion.div
-                      initial={{ opacity: 0, x: -60 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{
-                        duration: 0.7,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                    >
-                      <span className="inline-block text-xs px-3 py-1 bg-muted rounded mb-3">
-                        Step {index + 1}
-                      </span>
-                      <h3 className="font-semibold mb-2 text-foreground">
-                        {step.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground max-w-sm ml-auto">
-                        {step.text}
-                      </p>
-                    </motion.div>
-                  )}
+                {/* Left / Right Content */}
+                <motion.div
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -60 : 60 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6 }}
+                  className={`w-full md:w-[42%] ${
+                    index % 2 === 0 ? "md:text-right" : "md:order-last md:text-left"
+                  }`}
+                >
+                  <span className="text-xs font-semibold text-primary mb-2 block">
+                    {step.step}
+                  </span>
+                  <h3 className="text-xl font-bold mb-2 text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {step.desc}
+                  </p>
+                </motion.div>
+
+                {/* Center Icon */}
+                <div className="absolute left-4 md:left-1/2 top-0 md:top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                  <div className="w-11 h-11 rounded-full bg-background border-2 border-primary flex items-center justify-center text-primary shadow-md">
+                    {step.icon}
+                  </div>
                 </div>
 
-                <div className="relative flex justify-center">
-                  <motion.div className="w-6 h-6 rounded-full border border-border bg-background z-10 flex items-center justify-center">
-                    <motion.div
-                      style={{ scale: stepProgress }}
-                      className="absolute inset-0 rounded-full bg-primary"
-                    />
-                    <motion.div
-                      style={{ opacity: stepProgress }}
-                      className="relative text-primary-foreground"
-                    >
-                      <Check size={14} />
-                    </motion.div>
-                  </motion.div>
-                </div>
-
-                <div className={!isLeft ? "pl-16" : ""}>
-                  {!isLeft && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 60 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{
-                        duration: 0.7,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                    >
-                      <span className="inline-block text-xs px-3 py-1 bg-muted rounded mb-3">
-                        Step {index + 1}
-                      </span>
-                      <h3 className="font-semibold mb-2 text-foreground">
-                        {step.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground max-w-sm">
-                        {step.text}
-                      </p>
-                    </motion.div>
-                  )}
-                </div>
+                {/* Spacer */}
+                <div className="hidden md:block w-[42%]" />
               </div>
-            );
-          })}
+            ))}
+
+            {/* Finish Node */}
+            <div className="flex justify-center pt-6">
+              <div className="w-12 h-12 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg">
+                <CheckCircle2 size={22} />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -88,8 +88,8 @@ export default function Header() {
             </span>
           </div>
           <div className="flex items-center gap-3 ">
-            <Button variant="outline" size="sm" className="hover:text-black">How to Bid</Button>
-            <Button variant="outline" size="sm" className="hover:text-black">Sell Item</Button>
+            <Link href={`/howtobid`} className="border rounded-sm px-2 border-muted-foreground hover:text-black">How to Bid</Link>
+            <Link href={`/howtosell`} className="border rounded-sm px-2 border-muted-foreground hover:text-black">Sell Item</Link>
           </div>
         </div>
 

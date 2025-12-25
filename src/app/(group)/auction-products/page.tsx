@@ -70,9 +70,6 @@ function AuctionGridContent() {
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 border border-gray-200 rounded-full px-4 py-2 text-sm font-semibold hover:border-orange-500 hover:text-orange-500 transition">
-            Default Sorting <ChevronDown size={14} />
-          </button>
 
           <button 
             onClick={() => setIsDetailedCard(!isDetailedCard)} 
