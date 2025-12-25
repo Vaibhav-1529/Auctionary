@@ -2,242 +2,223 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, Tag as TagIcon, Loader2, X, PenSquareIcon } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase/client";
 
-const posts = [
-  {
-    id: 1,
-    title: "Collector’s Edition Limited Print of Frank Peral St.",
-    excerpt:
-      "Suspendisse blandit ultrices erat, at pretium erat mattis nec. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae...",
-    image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-    date: "05 November, 2024",
-    category: "Books & Comic",
-  },
-  {
-    id: 2,
-    title: "Gizmo galaxy your universent of cutting edge tech.",
-    excerpt:
-      "Suspendisse blandit ultrices erat, at pretium erat mattis nec. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae...",
-    image: "https://images.unsplash.com/photo-1500534314209-a26db0f5b2a0",
-    date: "12 November, 2024",
-    category: "Gadget & Technology",
-  },
-  {
-    id: 3,
-    title: "Hidden treasures from the antique world.",
-    excerpt:
-      "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.",
-    image: "https://images.unsplash.com/photo-1523217582562-09d0def993a6",
-    date: "18 November, 2024",
-    category: "Antiques",
-  },
-  {
-    id: 4,
-    title: "Rare coins that shaped history.",
-    excerpt:
-      "Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.",
-    image: "https://images.unsplash.com/photo-1602524202519-2a79f13a0cba",
-    date: "22 November, 2024",
-    category: "Old Coin",
-  },
-];
+const POSTS_PER_PAGE = 4;
 
-const categories = [
-  { name: "Antiques", count: 2 },
-  { name: "Automotive", count: 4 },
-  { name: "Books & Comic", count: 6 },
-  { name: "Digital Art", count: 3 },
-  { name: "Gadget and Technology", count: 5 },
-  { name: "Old Coin", count: 2 },
-  { name: "Real State", count: 1 },
-];
-
-const popularPosts = posts.slice(0, 3);
-const POSTS_PER_PAGE = 2;
-
-export default function Page() {
+export default function BlogPage() {
+  const [posts, setPosts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
 
-  const paginatedPosts = posts.slice(
-    (currentPage - 1) * POSTS_PER_PAGE,
-    currentPage * POSTS_PER_PAGE
-  );
+      const { data: catData } = await supabase
+        .from("categories")
+        .select("name")
+        .order("name");
+
+      if (catData) setCategories(catData);
+
+      let query = supabase
+        .from("blogs")
+        .select("*", { count: "exact" })
+        .eq("is_published", true)
+        .order("created_at", { ascending: false });
+
+      if (selectedCategory !== "All") query = query.eq("category", selectedCategory);
+      if (searchQuery)
+        query = query.or(`title.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%`);
+
+      const { data, count } = await query.range(
+        (currentPage - 1) * POSTS_PER_PAGE,
+        currentPage * POSTS_PER_PAGE - 1
+      );
+
+      setPosts(data || []);
+      setTotalCount(count || 0);
+      setLoading(false);
+    };
+
+    const t = setTimeout(fetchData, 350);
+    return () => clearTimeout(t);
+  }, [currentPage, selectedCategory, searchQuery]);
+
+  const totalPages = Math.ceil(totalCount / POSTS_PER_PAGE);
 
   return (
-    <section className="relative max-w-370 mx-auto px-6 py-20">
-      <div className="absolute inset-0 bg-linear-to-br from-[#f3f7e9] via-[#f6faef] to-[#eef4df]" />
+    <section className="relative max-w-7xl mx-auto px-6 py-20">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#f9fbf5] via-[#f7f9f1] to-[#eef3ea] -z-10" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative mb-16"
-      >
-        <h1 className="text-4xl font-extrabold mb-2">Blog</h1>
-        <p className="text-sm text-muted-foreground">
-          <Link href="/" className="hover:text-orange-500 transition">
-            Home
-          </Link>{" "}
-          → Blog Standard
+      {/* Header */}
+      <div className="mb-16">
+        <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 mb-3">
+          Our Blog
+        </h1>
+        <p className="text-gray-500 text-sm">
+          <Link href="/" className="hover:text-orange-500">Home</Link> /{" "}
+          {searchQuery ? `Search: "${searchQuery}"` : selectedCategory}
         </p>
-      </motion.div>
+      </div>
 
-      <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-14">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-14">
+        {/* Blog Feed */}
         <div className="lg:col-span-2 space-y-14">
-          {paginatedPosts.map((post) => (
-            <motion.article
-              key={post.id}
-              whileHover={{ y: -6 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              className="bg-white border rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all"
-            >
-              <div className="relative h-90 overflow-hidden">
-                <motion.div
-                  whileHover={{ scale: 1.08 }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  className="absolute inset-0"
-                >
+          {loading ? (
+            <div className="flex justify-center py-24">
+              <Loader2 className="animate-spin text-orange-500" size={42} />
+            </div>
+          ) : posts.length ? (
+            posts.map((post) => (
+              <motion.article
+                key={post.id}
+                whileHover={{ y: -6 }}
+                className="bg-white rounded-3xl overflow-hidden border shadow-sm hover:shadow-xl transition"
+              >
+                <div className="relative h-[280px]">
                   <Image
-                    src={post.image}
+                    src={post.image_url}
                     alt={post.title}
                     fill
                     className="object-cover"
                   />
-                </motion.div>
-              </div>
-
-              <div className="p-8">
-                <div className="text-xs text-muted-foreground mb-3">
-                  {post.category} • {post.date}
                 </div>
 
-                <h2 className="text-2xl font-bold mb-4 leading-snug hover:text-orange-500 transition">
-                  {post.title}
-                </h2>
+                <div className="p-8">
+                  <div className="flex items-center gap-3 text-xs font-semibold text-orange-600 uppercase tracking-widest mb-3">
+                    <span className="bg-orange-100 px-3 py-1 rounded-full">
+                      {post.category}
+                    </span>
+                    <span className="text-gray-400">
+                      {new Date(post.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
 
-                <p className="text-muted-foreground mb-6">
-                  {post.excerpt}
-                </p>
+                  <h2 className="text-2xl font-bold mb-3 leading-tight hover:text-orange-500 transition">
+                    <Link href={`/blogs/${post.id}`}>{post.title}</Link>
+                  </h2>
 
-                <Link
-                  href={`/blog/${post.id}`}
-                  className="inline-block text-sm font-bold text-orange-500 hover:underline"
-                >
-                  Read More →
-                </Link>
-              </div>
-            </motion.article>
-          ))}
+                  <p className="text-gray-500 leading-relaxed line-clamp-3 mb-6">
+                    {post.excerpt}
+                  </p>
 
-          <div className="flex items-center justify-center gap-3 pt-10">
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => p - 1)}
-              className="px-4 py-2 border rounded-md text-sm disabled:opacity-40 hover:bg-white transition"
-            >
-              Prev
-            </button>
+                  <Link
+                    href={`/blogs/${post.id}`}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-orange-600 hover:text-orange-700"
+                  >
+                    Read More →
+                  </Link>
+                </div>
+              </motion.article>
+            ))
+          ) : (
+            <div className="text-center py-24 bg-white rounded-3xl border">
+              <p className="text-gray-400 font-semibold">No blogs found.</p>
+            </div>
+          )}
 
-            {Array.from({ length: totalPages }).map((_, i) => {
-              const page = i + 1;
-              return (
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-3 pt-10">
+              {Array.from({ length: totalPages }).map((_, i) => (
                 <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-10 h-10 rounded-md border text-sm font-bold transition ${
-                    currentPage === page
-                      ? "bg-orange-500 text-white"
-                      : "bg-white hover:bg-orange-50"
+                  key={i}
+                  onClick={() => {
+                    setCurrentPage(i + 1);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className={`w-11 h-11 rounded-full font-semibold transition ${
+                    currentPage === i + 1
+                      ? "bg-orange-500 text-white shadow-lg"
+                      : "bg-white border text-gray-500 hover:border-orange-500"
                   }`}
                 >
-                  {page}
+                  {i + 1}
                 </button>
-              );
-            })}
-
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((p) => p + 1)}
-              className="px-4 py-2 border rounded-md text-sm disabled:opacity-40 hover:bg-white transition"
-            >
-              Next
-            </button>
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <aside className="space-y-6">
-          <div className="bg-white border rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold mb-4">Search</h3>
-            <div className="flex">
+        {/* Sidebar */}
+        <aside className="space-y-8">
+          <div className=" flex flex-col items-center justify-center gap-2 w-full">
+
+          <Link
+            href="/blogs/create"
+            className=" w-full flex items-center justify-center gap-3 bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-orange-500 transition"
+            >
+            <TagIcon size={18} /> Create Blog
+          </Link>
+          <Link
+            href="/blogs/manage"
+            className=" w-full flex items-center justify-center gap-3 bg-gray-600 text-white py-4 rounded-2xl font-bold hover:bg-orange-500 transition"
+            >
+            <PenSquareIcon size={18} /> Manage Your Blog
+          </Link>
+            </div>
+
+          {/* Search */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border">
+            <h3 className="text-lg font-bold mb-4">Search</h3>
+            <div className="relative">
               <input
-                placeholder="Search..."
-                className="flex-1 px-3 py-2 border rounded-l-lg outline-none text-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search articles..."
+                className="w-full px-4 py-3 pr-12 rounded-xl border focus:outline-none focus:ring-2 focus:ring-orange-400"
               />
-              <button className="px-4 rounded-r-lg bg-orange-500 text-white">
-                <Search size={18} />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-12 top-1/2 -translate-y-1/2 text-gray-400"
+                >
+                  <X size={16} />
+                </button>
+              )}
+              <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-500 text-white p-2 rounded-lg">
+                <Search size={16} />
               </button>
             </div>
           </div>
 
-          <div className="bg-white border rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold mb-4">Category</h3>
-            <ul className="space-y-3 text-sm">
+          {/* Categories */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border">
+            <h3 className="text-lg font-bold mb-4">Categories</h3>
+            <ul className="space-y-3">
+              <li
+                onClick={() => setSelectedCategory("All")}
+                className={`cursor-pointer font-medium ${
+                  selectedCategory === "All"
+                    ? "text-orange-500"
+                    : "text-gray-500 hover:text-orange-500"
+                }`}
+              >
+                All
+              </li>
               {categories.map((cat) => (
                 <li
                   key={cat.name}
-                  className="flex justify-between text-muted-foreground hover:text-orange-500 cursor-pointer transition"
+                  onClick={() => setSelectedCategory(cat.name)}
+                  className={`cursor-pointer font-medium ${
+                    selectedCategory === cat.name
+                      ? "text-orange-500"
+                      : "text-gray-500 hover:text-orange-500"
+                  }`}
                 >
-                  <span>{cat.name}</span>
-                  <span>({cat.count})</span>
+                  {cat.name}
                 </li>
               ))}
             </ul>
-          </div>
-
-          <div className="bg-white border rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold mb-4">Popular Post</h3>
-            <div className="space-y-4">
-              {popularPosts.map((post) => (
-                <div key={post.id} className="flex gap-3 cursor-pointer">
-                  <Image
-                    src={post.image}
-                    alt={post.title}
-                    width={60}
-                    height={60}
-                    className="rounded-lg object-cover"
-                  />
-                  <div>
-                    <p className="text-sm font-semibold leading-snug hover:text-orange-500 transition">
-                      {post.title}
-                    </p>
-                    <span className="text-xs text-muted-foreground">
-                      {post.date}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white border rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold mb-4">New Tags</h3>
-            <div className="flex flex-wrap gap-2">
-              {["Antique", "Auction", "Art", "Vintage", "Collectibles", "Bidding"].map(
-                (tag) => (
-                  <span
-                    key={tag}
-                    className="text-xs px-3 py-1 border rounded-full hover:bg-orange-500 hover:text-white cursor-pointer transition"
-                  >
-                    {tag}
-                  </span>
-                )
-              )}
-            </div>
           </div>
         </aside>
       </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Package, Clock, ExternalLink, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function OrdersTab({ userId }: { userId: string }) {
   const [orders, setOrders] = useState<any[]>([]);
@@ -46,7 +47,7 @@ useEffect(() => {
       {orders.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-100">
           <Package size={48} className="text-gray-300 mb-4" />
-          <p className="text-gray-500 font-bold">No orders found.</p>
+          <p className="text-gray-500 font-normal">No orders found.</p>
           <p className="text-gray-400 text-sm">Items you win will appear here.</p>
         </div>
       ) : (
@@ -69,16 +70,16 @@ useEffect(() => {
             <div className="flex-1 w-full">
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <h4 className="text-lg font-black text-gray-900 leading-tight">
+                  <h4 className="text-lg font-semibold text-gray-900 leading-tight">
                     {order.auction_items?.title}
                   </h4>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                  <p className="text-[10px] text-gray-400 font-normal uppercase tracking-widest mt-1">
                     Order ID: {order.id.slice(0, 8)}...
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-xl font-black text-gray-900">₹{order.order_amount.toLocaleString()}</p>
-                  <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest">Paid via {order.payment_method}</p>
+                  <p className="text-[10px] text-green-500 font-normal uppercase tracking-widest">Paid via {order.payment_method}</p>
                 </div>
               </div>
 
@@ -90,7 +91,7 @@ useEffect(() => {
                 
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 text-gray-500 rounded-full border border-gray-100">
                   <Clock size={12} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                  <span className="text-[10px] font-normal uppercase tracking-wider">
                     {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                   </span>
                 </div>
@@ -99,9 +100,10 @@ useEffect(() => {
 
             {/* Action Button */}
             <div className="w-full md:w-auto">
-              <button className="w-full md:w-12 h-12 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-orange-500 transition-all shadow-lg shadow-gray-200">
+              <Link href={`/product/${order.auction_item_id}`} target="_blank" rel="noopener noreferrer"
+               className="w-full md:w-12 h-12 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-orange-500 transition-all shadow-lg shadow-gray-200">
                 <ExternalLink size={18} />
-              </button>
+              </Link>
             </div>
           </div>
         ))
