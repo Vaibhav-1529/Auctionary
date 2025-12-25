@@ -157,14 +157,6 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href="/dashboard"
-                      className="profile-menu-item"
-                    >
-                      <LayoutDashboard size={16} /> My Bids & Auctions
-                    </Link>
-                  </DropdownMenuItem>
 
                   <DropdownMenuItem
                     onClick={() => signOut({ redirectUrl: "/" })}
