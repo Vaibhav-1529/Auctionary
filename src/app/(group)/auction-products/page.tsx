@@ -22,18 +22,15 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-/**
- * 1. Inner Component: Handles URL Logic and UI Layout
- */
 function AuctionGridContent() {
   const searchParams = useSearchParams();
 
   // URL State
   const page = Number(searchParams.get("page") ?? 1);
   const currentStatus = searchParams.get("status") ?? "all";
+  const searchQuery = searchParams.get("search") ?? ""; // Fixed: Added search param
   const isDetailedFromUrl = searchParams.get("view") === "true";
 
-  // Local UI State
   const [isDetailedCard, setIsDetailedCard] = useState(isDetailedFromUrl);
 
   const filters = [
@@ -57,7 +54,7 @@ function AuctionGridContent() {
           {filters.map((f) => (
             <Link
               key={f.value}
-              href={`/auction-products?status=${f.value}`}
+              href={`/auction-products?status=${f.value}${searchQuery ? `&search=${searchQuery}` : ""}`}
               className={`px-4 py-2 rounded-full text-sm font-bold border transition-all ${
                 currentStatus === f.value
                   ? "bg-orange-500 text-white border-orange-500"
@@ -70,7 +67,6 @@ function AuctionGridContent() {
         </div>
 
         <div className="flex items-center gap-4">
-
           <button 
             onClick={() => setIsDetailedCard(!isDetailedCard)} 
             className="p-2 rounded-full border border-orange-500 bg-orange-50 text-orange-600 transition-colors hover:bg-orange-100"
@@ -83,6 +79,7 @@ function AuctionGridContent() {
       <AuctionsList 
         page={page} 
         status={currentStatus} 
+        search={searchQuery} // Fixed: Passing search to list
         isDetailed={isDetailedCard} 
       />
     </section>
@@ -95,10 +92,12 @@ function AuctionGridContent() {
 function AuctionsList({
   page,
   status,
+  search, // Fixed: Accept search prop
   isDetailed,
 }: {
   page: number;
   status: string;
+  search: string; // Fixed: Prop type
   isDetailed?: boolean;
 }) {
   const [items, setItems] = useState<any[]>([]);
@@ -115,6 +114,7 @@ function AuctionsList({
           body: {
             page,
             status: status === "all" ? null : status,
+            search: search || null, // Fixed: Pass search to Edge Function
           },
         });
 
@@ -133,7 +133,7 @@ function AuctionsList({
     }
 
     fetchAuctions();
-  }, [page, status]);
+  }, [page, status, search]); // Fixed: Added search to dependency array
 
   if (loading) return <AuctionsSkeleton isDetailed={isDetailed} />;
 
@@ -149,16 +149,22 @@ function AuctionsList({
   }
 
   const getPageUrl = (p: number) =>
-    `/auction-products?page=${p}${status !== "all" ? `&status=${status}` : ""}${isDetailed ? `&view=true` : ""}`;
+    `/auction-products?page=${p}${status !== "all" ? `&status=${status}` : ""}${search ? `&search=${search}` : ""}${isDetailed ? `&view=true` : ""}`;
 
   return (
     <section>
       <div className={`grid gap-6 ${isDetailed ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"}`}>
-        {items.map((item: any, i: number) => (
-          isDetailed ? 
-            <HorizontalItemCard key={item.id} item={item} i={i} /> : 
-            <ItemCard key={item.id} item={item} i={i} />
-        ))}
+        {items.length > 0 ? (
+          items.map((item: any, i: number) => (
+            isDetailed ? 
+              <HorizontalItemCard key={item.id} item={item} i={i} /> : 
+              <ItemCard key={item.id} item={item} i={i} />
+          ))
+        ) : (
+          <div className="col-span-full py-20 text-center">
+            <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">No auctions found matching your criteria.</p>
+          </div>
+        )}
       </div>
 
       {totalPages > 1 && (
@@ -217,7 +223,6 @@ function AuctionsSkeleton({ isDetailed }: { isDetailed?: boolean }) {
 
 /**
  * 4. Main Page Component (Export Default)
- * This wraps everything in Suspense to fix the build error.
  */
 export default function Page() {
   return (

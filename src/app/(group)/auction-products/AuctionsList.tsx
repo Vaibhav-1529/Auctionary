@@ -21,10 +21,12 @@ const supabase = createClient(
 export default function AuctionsList({
   page,
   status,
+  search, // Added search prop
   isDetailed,
 }: {
   page: number;
   status: string;
+  search?: string; // Added search type
   isDetailed?: boolean;
 }) {
   const [items, setItems] = useState<any[]>([]);
@@ -41,6 +43,7 @@ export default function AuctionsList({
           body: {
             page,
             status: status === "all" ? null : status,
+            search: search || null, // Pass search query to Edge Function
           },
         });
 
@@ -59,7 +62,7 @@ export default function AuctionsList({
     }
 
     fetchAuctions();
-  }, [page, status]);
+  }, [page, status, search]); // Added search to dependency array
 
   if (loading) {
     return <AuctionsSkeleton isDetailed={isDetailed} />;
@@ -80,7 +83,9 @@ export default function AuctionsList({
   }
 
   const getPageUrl = (p: number) =>
-    `/auction-products?page=${p}${status !== "all" ? `&status=${status}` : ""}${isDetailed ? `&view=true` : ""}`;
+    `/auction-products?page=${p}${status !== "all" ? `&status=${status}` : ""}${
+      search ? `&search=${search}` : ""
+    }${isDetailed ? `&view=true` : ""}`;
 
   return (
     <section className="relative">
@@ -89,11 +94,19 @@ export default function AuctionsList({
         ? "grid-cols-1" 
         : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
       }`}>
-        {items.map((item: any, i: number) => (
-          isDetailed ?
-          <HorizontalItemCard key={item.id} item={item} i={i} /> :
-          <ItemCard key={item.id} item={item} i={i} />
-        ))}
+        {items.length > 0 ? (
+          items.map((item: any, i: number) => (
+            isDetailed ?
+            <HorizontalItemCard key={item.id} item={item} i={i} /> :
+            <ItemCard key={item.id} item={item} i={i} />
+          ))
+        ) : (
+          <div className="col-span-full py-20 text-center">
+            <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">
+              No auctions found matching your search.
+            </p>
+          </div>
+        )}
       </div>
 
       {totalPages > 1 && (

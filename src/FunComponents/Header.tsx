@@ -27,6 +27,7 @@ import { SignInButton, useClerk, useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import NotificationBell from "./Notification";
+import HeaderSearch from "./HeaderSearch";
 
 const sidebarVariants: Variants = {
   open: {
@@ -117,12 +118,8 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center gap-4">
-            <div className="relative hidden md:block">
-              <Input
-                placeholder="Search auctions..."
-                className="w-64 rounded-full pr-10"
-              />
-              <Search className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
+            <div className="hidden md:block">
+              <HeaderSearch />
             </div>
 
             {isSignedIn ? (
