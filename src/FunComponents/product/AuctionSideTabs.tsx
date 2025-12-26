@@ -86,16 +86,17 @@ export default function AuctionSideTabs({ auctionId }: { auctionId: number }) {
         {active === "Auction History" ? (
           <div className="space-y-4 overflow-y-auto h-full pr-2">
             {userId && userHighestBid && (
-              <div className="bg-background p-4 rounded-xl sticky top-0 z-10 shadow-md">
-                <div className="flex justify-between items-center">
-                  <span className="text-[12px] font-bold text-accent-foreground/80">
-                    Your Highest Bid
-                  </span>
-                  <span className="text-xl font-bold text-accent-foreground">
-                    ₹{userHighestBid.amount.toLocaleString()}
-                  </span>
-                </div>
-              </div>
+              <div className="sticky top-0 z-10 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/30 rounded-xl p-4 shadow-sm">
+  <div className="flex justify-between items-center">
+    <span className="text-xs font-bold uppercase tracking-widest text-primary">
+      Your Highest Bid
+    </span>
+    <span className="text-lg font-extrabold text-primary">
+      ₹{userHighestBid.amount.toLocaleString()}
+    </span>
+  </div>
+</div>
+
             )}
 
             <div className="space-y-3">
