@@ -6,12 +6,10 @@ import { Suspense } from "react";
 
 async function ParticipatingTab() {
   const user = await currentUser();
-  if (!user) redirect("/sign-in");
-
   const { data: myBids, error } = await supabase
     .from("bids")
     .select("amount, created_at, auction_items(*)")
-    .eq("bidder_id", user.id)
+    .eq("bidder_id", user?.id)
     .order("created_at", { ascending: false });
 
   if (error) {

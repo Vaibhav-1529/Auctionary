@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { usePathname } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,7 @@ import {
   LayoutDashboard,
   Settings,
   Bell,
+  UserCircle,
 } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { SignInButton, useClerk, useUser } from "@clerk/nextjs";
@@ -63,6 +64,7 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const { signOut } = useClerk();
   const { isLoaded, isSignedIn, user } = useUser();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (isLoaded && isSignedIn && user) {
@@ -106,15 +108,24 @@ export default function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 font-semibold">
-            {navLinks.map((item) => (
-              <Link
+            {navLinks.map((item) =>{
+              const isActive = pathname === item.href;
+
+              return (
+                
+                <Link
                 key={item.name}
                 href={item.href}
-                className="hover:text-primary transition"
-              >
+className={`relative transition font-medium ${
+        isActive
+          ? "text-primary after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-primary"
+          : "text-foreground hover:text-primary"
+      }`}                >
                 {item.name}
               </Link>
-            ))}
+            )
+          }
+          )}
           </nav>
 
           <div className="flex items-center gap-4">
@@ -208,17 +219,42 @@ export default function Header() {
               </div>
 
               <nav className="space-y-4">
-                {navLinks.map((item) => (
+                
+                {navLinks.map((item) =>{
+                    const isActive = pathname === item.href;
+                  return  (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="flex justify-between py-2 border-b hover:text-primary"
+                    className={`flex justify-between font-medium ${
+                        isActive
+                          ? "text-primary after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-primary"
+                          : "text-foreground hover:text-primary"
+                      }`}
                     onClick={() => setOpen(false)}
                   >
                     {item.name}
                     <Plus size={14} />
                   </Link>
-                ))}
+                )})}
+                  <Link
+                    href={'/profile'}
+                    className="flex justify-between py-2 border-b hover:text-primary"
+                    onClick={() => setOpen(false)}
+                  >
+                    Profile
+                    <UserCircle size={14} />
+                  </Link>
+                  <button
+                    onClick={() => signOut({ redirectUrl: "/" })}
+                    className="w-full flex justify-between items-center py-2 border-b hover:text-primary"
+                  >
+                    <div>
+
+                    Logout
+                    </div>
+                    <LogOut size={16} />
+                  </button>
               </nav>
             </motion.aside>
           </>

@@ -4,7 +4,6 @@ import { useState } from "react";
 import clsx from "clsx";
 
 const tabs = [
-  "Overview",
   "Selling",
   "Participating",
   "Orders",
@@ -20,24 +19,33 @@ export default function ProfileTabs({
 
   return (
     <div>
-      <div className="flex gap-6 border-b border-border mb-8">
-        {tabs.map((tab, i) => (
-          <button
-            key={tab}
-            onClick={() => setActive(i)}
-            className={clsx(
-              "pb-3 text-sm font-semibold transition-colors",
-              active === i
-                ? "border-b-2 border-primary text-primary"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {tab}
-          </button>
-        ))}
+      {/* Tabs */}
+      <div className="sticky top-0 z-20 bg-white border-b border-border ">
+        <div className="flex gap-3 sm:gap-6 px-1 sm:px-0 ">
+          {tabs.map((tab, i) => (
+            <button
+              key={tab}
+              onClick={() => setActive(i)}
+              className={clsx(
+                "relative py-3 px-1 text-sm font-semibold transition-colors",
+                active === i
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {tab}
+
+              {/* Active underline */}
+              {active === i && (
+                <span className="absolute left-0 -bottom-[1px] h-[2px] w-full bg-primary rounded-full" />
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div>{children[active]}</div>
+      {/* Content */}
+      <div className="mt-8">{children[active]}</div>
     </div>
   );
 }

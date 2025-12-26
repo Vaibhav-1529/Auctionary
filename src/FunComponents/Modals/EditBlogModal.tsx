@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { uploadToCloudinary } from "@/app/actions/cloudinary";
 import { Save, Loader2, UploadCloud, X } from "lucide-react";
+import { toast } from "sonner"; // Ensure sonner is installed
 
 interface EditBlogModalProps {
   blog: any;
@@ -23,7 +24,6 @@ export default function EditBlogModal({ blog, isOpen, onClose, onSuccess }: Edit
     content: "",
   });
 
-  // Sync state with the blog prop when modal opens
   useEffect(() => {
     if (blog) {
       setFormData({
@@ -47,10 +47,12 @@ export default function EditBlogModal({ blog, isOpen, onClose, onSuccess }: Edit
     e.preventDefault();
     setLoading(true);
 
+    // Create a toast ID to update the same toast throughout the process
+    const toastId = toast.loading("Updating your story...");
+
     try {
       let imageUrl = blog.image_url;
 
-      // Only upload if a new file was selected
       if (imageFile) {
         const form = new FormData();
         form.append("file", imageFile);
@@ -72,10 +74,14 @@ export default function EditBlogModal({ blog, isOpen, onClose, onSuccess }: Edit
 
       if (error) throw error;
       
-      onSuccess(); // Refresh the list
-      onClose();   // Close modal
+      // Success Notification
+      toast.success("Blog updated successfully!", { id: toastId });
+      
+      onSuccess(); 
+      onClose();   
     } catch (err: any) {
-      alert(err.message || "Something went wrong");
+      // Error Notification
+      toast.error(err.message || "Failed to update blog", { id: toastId });
     } finally {
       setLoading(false);
     }
@@ -85,7 +91,6 @@ export default function EditBlogModal({ blog, isOpen, onClose, onSuccess }: Edit
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-[2.5rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto relative animate-in zoom-in duration-300">
         
-        {/* Close Button */}
         <button 
           onClick={onClose}
           className="absolute top-6 right-6 p-2 hover:bg-gray-100 rounded-full transition"
@@ -100,7 +105,6 @@ export default function EditBlogModal({ blog, isOpen, onClose, onSuccess }: Edit
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Title */}
             <div>
               <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Title</label>
               <input

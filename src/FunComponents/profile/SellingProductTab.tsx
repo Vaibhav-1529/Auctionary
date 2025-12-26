@@ -1,6 +1,7 @@
 "use client";
 
-import { Gavel } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
+import AddAuctionModal from "../Modals/AddAuctionModal";
 
 interface AuctionItem {
   id: string;
@@ -15,6 +16,7 @@ export default function SellingProductTab({
 }: {
   sellingAuctions: AuctionItem[];
 }) {
+  const userId = useUser().user?.id || "";
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between">
@@ -26,6 +28,7 @@ export default function SellingProductTab({
             Manage and monitor your auction items
           </p>
         </div>
+      <AddAuctionModal userId={userId} />
       </div>
 
       {sellingAuctions.length === 0 ? (

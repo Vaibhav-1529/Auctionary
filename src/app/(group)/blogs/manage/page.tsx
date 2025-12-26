@@ -6,8 +6,8 @@ import { useUser } from "@clerk/nextjs";
 import { Edit, Trash2, Eye, EyeOff, Loader2, Plus, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-// Import your EditBlogModal component here
 import EditBlogModal from "@/FunComponents/Modals/EditBlogModal"; 
+import { toast } from "sonner"; // Ensure sonner is installed
 
 export default function ManageBlogsPage() {
   const { user } = useUser();
@@ -15,7 +15,6 @@ export default function ManageBlogsPage() {
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
 
-  // Modal States
   const [selectedBlog, setSelectedBlog] = useState<any>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -37,23 +36,24 @@ export default function ManageBlogsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this post?")) return;
-    setActionId(id);
     
+    setActionId(id);
+    const toastId = toast.loading("Deleting post...");
+
     try {
       const token = await (window as any).Clerk?.session?.getToken();
       
       const { error } = await supabase.functions.invoke("delete-blog", {
         body: { id },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (error) throw error;
 
       setBlogs(blogs.filter(b => b.id !== id));
+      toast.success("Post deleted successfully", { id: toastId });
     } catch (err: any) {
-      alert(err.message || "Failed to delete post");
+      toast.error(err.message || "Failed to delete post", { id: toastId });
     } finally {
       setActionId(null);
     }
@@ -61,6 +61,8 @@ export default function ManageBlogsPage() {
 
   const toggleVisibility = async (id: string, currentStatus: boolean) => {
     setActionId(id);
+    const statusText = !currentStatus ? "Published" : "Hidden (Draft)";
+    const toastId = toast.loading(`Moving to ${statusText}...`);
     
     try {
       const token = await (window as any).Clerk?.session?.getToken();
@@ -70,16 +72,15 @@ export default function ManageBlogsPage() {
           id, 
           is_published: !currentStatus 
         },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (error) throw error;
 
       setBlogs(blogs.map(b => b.id === id ? { ...b, is_published: !currentStatus } : b));
+      toast.success(`Post is now ${statusText}`, { id: toastId });
     } catch (err: any) {
-      alert(err.message || "Failed to update visibility");
+      toast.error(err.message || "Failed to update visibility", { id: toastId });
     } finally {
       setActionId(null);
     }
@@ -94,7 +95,7 @@ export default function ManageBlogsPage() {
 
   return (
     <section className="max-w-6xl mx-auto px-6 py-20">
-              <Link 
+      <Link 
         href="/blogs" 
         className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-orange-500 mb-10 transition"
       >
@@ -151,7 +152,6 @@ export default function ManageBlogsPage() {
                       {actionId === blog.id ? <Loader2 size={18} className="animate-spin" /> : (blog.is_published ? <EyeOff size={18} /> : <Eye size={18} />)}
                     </button>
                     
-                    {/* MODAL TRIGGER BUTTON */}
                     <button 
                       onClick={() => handleEditClick(blog)}
                       className="p-3 bg-white border border-gray-200 rounded-xl hover:text-blue-500 hover:border-blue-500 transition"
@@ -179,7 +179,6 @@ export default function ManageBlogsPage() {
         )}
       </div>
 
-      {/* THE EDIT MODAL COMPONENT */}
       <EditBlogModal 
         blog={selectedBlog}
         isOpen={isEditModalOpen}

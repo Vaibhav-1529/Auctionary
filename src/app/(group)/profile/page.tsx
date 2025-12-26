@@ -12,23 +12,22 @@ import StoreSettingTab from "@/FunComponents/profile/SellerSettingTab";
 
 export default async function ProfilePage() {
   const user = await currentUser();
-  if (!user) redirect("/sign-in");
-  
-  const isSeller = user.publicMetadata?.role === "seller";
+
+  const isSeller = user?.publicMetadata?.role === "seller";
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // Parallel fetching for performance
-  const [userDetailsRes, participatingRes, sellerProfileRes, sellingAuctionsRes] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
-    supabase.from("bids").select("amount, auction_items(*)").eq("bidder_id", user.id).order("created_at", { ascending: false }),
-    isSeller
-      ? supabase.from("seller_profiles").select("*").eq("id", user.id).single()
-      : Promise.resolve({ data: null }),
-    supabase.from("auction_items").select("*").eq("seller_id", user.id).order("created_at", { ascending: false }),
-  ]);
+  const [userDetailsRes, participatingRes, sellerProfileRes, sellingAuctionsRes] =
+    await Promise.all([
+      supabase.from("profiles").select("*").eq("id", user?.id).single(),
+      supabase.from("bids").select("amount, auction_items(*)").eq("bidder_id", user?.id),
+      isSeller
+        ? supabase.from("seller_profiles").select("*").eq("id", user?.id).single()
+        : Promise.resolve({ data: null }),
+      supabase.from("auction_items").select("*").eq("seller_id", user?.id),
+    ]);
 
   const userDetails = userDetailsRes.data;
   const myBids = participatingRes.data || [];
@@ -36,83 +35,70 @@ export default async function ProfilePage() {
   const auctions = sellingAuctionsRes.data || [];
 
   return (
-    <section className="max-w-6xl mx-auto px-6 py-14 bg-white">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-12">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* Header */}
+      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-10">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-gray-900">My Profile</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Logged in as <span className="font-bold text-gray-800">{user.emailAddresses[0].emailAddress}</span>
+          <h1 className="text-3xl sm:text-4xl font-black text-gray-900">
+            My Profile
+          </h1>
+          <p className="text-sm text-gray-500 mt-1 break-all">
+            {user?.emailAddresses[0].emailAddress}
           </p>
         </div>
-        
-        <div className="flex items-center gap-4">
-          <p className="px-6 py-2 text-xl font-black border-2 border-gray-900 rounded-full bg-gray-50">
-            ₹ {(userDetails?.current_balance || 0).toLocaleString()}
-          </p>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="px-4 py-2 rounded-full border font-semibold text-sm bg-gray-50">
+            ₹ {userDetails?.current_balance?.toLocaleString()}
+          </div>
+
           <AddFundsModal />
+
           {isSeller && (
-            <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 px-4 py-3 rounded-full">
-              <span className="h-2 w-2 bg-orange-500 rounded-full animate-pulse" />
-              <span className="text-sm font-black text-orange-600 uppercase tracking-wider">
-                {storeInfo?.store_name || "Official Seller"}
-              </span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-600 rounded-full text-sm font-semibold">
+              <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+              Seller
             </div>
           )}
         </div>
       </div>
 
-      <ProfileTabs>
-        {/* Statistics and Activation UI */}
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="rounded-2xl p-6 bg-white border shadow-sm text-gray-900">
-              <p className="text-xs font-bold text-gray-400 uppercase">Active Bids</p>
-              <p className="text-3xl font-black mt-1">{myBids.length}</p>
-            </div>
-            {isSeller && (
-              <div className="rounded-2xl p-6 bg-white border shadow-sm text-gray-900">
-                <p className="text-xs font-bold text-gray-400 uppercase">Total Sales</p>
-                <p className="text-3xl font-black mt-1">{storeInfo?.total_sales || 0}</p>
-              </div>
-            )}
-            <div className="rounded-2xl p-6 bg-orange-50 border border-orange-200 text-orange-600">
-              <p className="text-xs font-bold text-orange-400 uppercase">Account Type</p>
-              <p className="text-xl font-black mt-1 uppercase">{isSeller ? "Seller" : "Standard"}</p>
-            </div>
-          </div>
-
-          <div className="rounded-2xl p-6 bg-gray-50 border">
-            <h3 className="font-black text-lg mb-2 text-gray-900">Seller Account Activation</h3>
-            <p className="text-sm text-gray-500 mb-6 max-w-md">
-              Want to list your own items? Activate your seller account to reach thousands of bidders.
-            </p>
-            {isSeller ? (
-              <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-lg font-bold text-sm">
-                ✓ Seller Powers Active
-              </div>
-            ) : (
-              <BecomeSeller />
-            )}
-          </div>
+      {/* STATS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+        <div className="bg-white border rounded-xl p-5">
+          <p className="text-xs uppercase text-gray-500">Active Bids</p>
+          <p className="text-2xl font-bold">{myBids.length}</p>
         </div>
 
-        {/* Tab 1: Selling Items */}
-        <Suspense fallback={<div className="p-10 text-center animate-pulse">Loading listings...</div>}>
-          <SellingProductTab sellingAuctions={auctions}/>
+        {isSeller && (
+          <div className="bg-white border rounded-xl p-5">
+            <p className="text-xs uppercase text-gray-500">Total Sales</p>
+            <p className="text-2xl font-bold">{storeInfo?.total_sales || 0}</p>
+          </div>
+        )}
+
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-5">
+          <p className="text-xs uppercase text-orange-600">Account Type</p>
+          <p className="text-lg font-bold text-orange-700">
+            {isSeller ? "Seller" : "Standard"}
+          </p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <ProfileTabs>
+        <Suspense fallback={<div className="py-10 text-center">Loading...</div>}>
+          <SellingProductTab sellingAuctions={auctions} />
         </Suspense>
 
-        {/* Tab 2: Bids */}
         <ParticipatingTab />
 
-        {/* Tab 3: Orders */}
-        <OrdersTab userId={user.id} />
+        <OrdersTab userId={user?.id||""} />
 
-        {/* Tab 4: Store Settings */}
-        <StoreSettingTab 
-          storeInfo={storeInfo} 
-          isSeller={isSeller} 
-          activeListingsCount={auctions.length} 
+        <StoreSettingTab
+          storeInfo={storeInfo}
+          isSeller={isSeller}
+          activeListingsCount={auctions.length}
         />
       </ProfileTabs>
     </section>

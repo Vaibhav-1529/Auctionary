@@ -114,7 +114,7 @@ export default function HorizontalItemCard({
             {item.title}
           </h3>
 
-          <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+          <p className="text-sm text-muted-foreground md:line-clamp-3 line-clamp-1 mb-4">
             {item.description ??
               "A curated premium auction item attracting competitive bidding."}
           </p>

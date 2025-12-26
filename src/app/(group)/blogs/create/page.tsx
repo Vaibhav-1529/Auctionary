@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase/client";
 import { uploadToCloudinary } from "@/app/actions/cloudinary";
 import { useRouter } from "next/navigation";
 import { Save, Loader2, UploadCloud } from "lucide-react";
+import { toast } from "sonner"; // Import toast
 
 export default function CreateBlogPage() {
   const router = useRouter();
@@ -30,11 +31,12 @@ export default function CreateBlogPage() {
     fetchCategories();
   }, []);
 
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
+    // Optional: Start a loading toast
+    const promise = async () => {
       let imageUrl = "https://via.placeholder.com/800x500";
 
       if (imageFile) {
@@ -43,11 +45,8 @@ const handleSubmit = async (e: React.FormEvent) => {
         imageUrl = await uploadToCloudinary(form);
       }
 
-      // 1. Get the JWT token from Clerk
-      // This ensures your Edge Function's 'jwtVerify' doesn't fail with a 400/401
       const token = await (window as any).Clerk?.session?.getToken();
 
-      // 2. Pass the token in the headers
       const { error } = await supabase.functions.invoke("create-blog", {
         body: { ...formData, image_url: imageUrl },
         headers: {
@@ -56,12 +55,19 @@ const handleSubmit = async (e: React.FormEvent) => {
       });
 
       if (error) throw error;
-      router.push("/blogs");
-    } catch (err: any) {
-      alert(err.message || "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
+      return "Blog published successfully!";
+    };
+
+    // Use toast.promise to handle Loading, Success, and Error in one go
+    toast.promise(promise(), {
+      loading: 'Uploading and publishing your blog...',
+      success: (data) => {
+        router.push("/blogs");
+        return data;
+      },
+      error: (err) => err.message || "Something went wrong",
+      finally: () => setLoading(false),
+    });
   };
 
   return (

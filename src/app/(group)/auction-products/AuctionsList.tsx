@@ -21,12 +21,12 @@ const supabase = createClient(
 export default function AuctionsList({
   page,
   status,
-  search, // Added search prop
+  search, // Fixed: Accept search prop
   isDetailed,
 }: {
   page: number;
   status: string;
-  search?: string; // Added search type
+  search: string; // Fixed: Prop type
   isDetailed?: boolean;
 }) {
   const [items, setItems] = useState<any[]>([]);
@@ -43,7 +43,7 @@ export default function AuctionsList({
           body: {
             page,
             status: status === "all" ? null : status,
-            search: search || null, // Pass search query to Edge Function
+            search: search || null, // Fixed: Pass search to Edge Function
           },
         });
 
@@ -62,20 +62,15 @@ export default function AuctionsList({
     }
 
     fetchAuctions();
-  }, [page, status, search]); // Added search to dependency array
+  }, [page, status, search]); // Fixed: Added search to dependency array
 
-  if (loading) {
-    return <AuctionsSkeleton isDetailed={isDetailed} />;
-  }
+  if (loading) return <AuctionsSkeleton isDetailed={isDetailed} />;
 
   if (error) {
     return (
       <div className="text-center py-20">
         <p className="text-red-500 font-bold">Failed to load auctions.</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="mt-4 text-sm text-orange-500 underline"
-        >
+        <button onClick={() => window.location.reload()} className="mt-4 text-orange-500 underline">
           Try Again
         </button>
       </div>
@@ -83,28 +78,20 @@ export default function AuctionsList({
   }
 
   const getPageUrl = (p: number) =>
-    `/auction-products?page=${p}${status !== "all" ? `&status=${status}` : ""}${
-      search ? `&search=${search}` : ""
-    }${isDetailed ? `&view=true` : ""}`;
+    `/auction-products?page=${p}${status !== "all" ? `&status=${status}` : ""}${search ? `&search=${search}` : ""}${isDetailed ? `&view=true` : ""}`;
 
   return (
-    <section className="relative">
-      <div className={`grid gap-6 ${
-        isDetailed 
-        ? "grid-cols-1" 
-        : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-      }`}>
+    <section>
+      <div className={`grid gap-6 ${isDetailed ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"}`}>
         {items.length > 0 ? (
           items.map((item: any, i: number) => (
-            isDetailed ?
-            <HorizontalItemCard key={item.id} item={item} i={i} /> :
-            <ItemCard key={item.id} item={item} i={i} />
+            isDetailed ? 
+              <HorizontalItemCard key={item.id} item={item} i={i} /> : 
+              <ItemCard key={item.id} item={item} i={i} />
           ))
         ) : (
           <div className="col-span-full py-20 text-center">
-            <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">
-              No auctions found matching your search.
-            </p>
+            <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">No auctions found matching your criteria.</p>
           </div>
         )}
       </div>
@@ -112,44 +99,28 @@ export default function AuctionsList({
       {totalPages > 1 && (
         <div className="mt-16 flex justify-center">
           <Pagination>
-            <PaginationContent className="bg-white rounded-xl px-4 py-2 shadow-sm border border-border">
+            <PaginationContent className="bg-white rounded-xl px-4 py-2 shadow-sm border">
               <PaginationItem>
-                <PaginationPrevious
-                  href={getPageUrl(page - 1)}
-                  aria-disabled={page === 1}
-                  className={`border border-border rounded-lg hover:bg-orange-50 hover:text-orange-600 ${
-                    page === 1 ? "pointer-events-none opacity-40" : ""
-                  }`}
+                <PaginationPrevious 
+                   href={getPageUrl(Math.max(1, page - 1))}
+                   className={page === 1 ? "pointer-events-none opacity-40" : ""}
                 />
               </PaginationItem>
-
-              {Array.from({ length: totalPages }).map((_, i) => {
-                const pageNumber = i + 1;
-                const isActive = page === pageNumber;
-                return (
-                  <PaginationItem key={pageNumber}>
-                    <PaginationLink
-                      href={getPageUrl(pageNumber)}
-                      isActive={isActive}
-                      className={`rounded-lg border border-border font-semibold transition-colors ${
-                        isActive
-                          ? "bg-orange-500 text-white hover:bg-orange-300"
-                          : "text-gray-600 hover:bg-orange-50 hover:text-orange-600"
-                      }`}
-                    >
-                      {pageNumber}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <PaginationItem key={i}>
+                  <PaginationLink 
+                    href={getPageUrl(i + 1)} 
+                    isActive={page === i + 1}
+                    className={page === i + 1 ? "bg-orange-500 text-white" : ""}
+                  >
+                    {i + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
               <PaginationItem>
-                <PaginationNext
-                  href={getPageUrl(page + 1)}
-                  aria-disabled={page === totalPages}
-                  className={`border border-border rounded-lg hover:bg-orange-50 hover:text-orange-600 ${
-                    page === totalPages ? "pointer-events-none opacity-40" : ""
-                  }`}
+                <PaginationNext 
+                   href={getPageUrl(Math.min(totalPages, page + 1))}
+                   className={page === totalPages ? "pointer-events-none opacity-40" : ""}
                 />
               </PaginationItem>
             </PaginationContent>
@@ -159,6 +130,7 @@ export default function AuctionsList({
     </section>
   );
 }
+
 
 function AuctionsSkeleton({ isDetailed }: { isDetailed?: boolean }) {
   return (
